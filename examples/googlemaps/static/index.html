@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Marker Clustering</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>        
+ 
+        function initMap() {
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 0,
+                center: {lat: 0, lng: 0}
+            });
+
+            var clusters = []
+
+            function addCluster(location, size) {
+                var c = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillOpacity: 1,
+                        fillColor: '#000',
+                        // strokeOpacity: 1.0,
+                        // strokeColor: '#000',
+                        // strokeWeight: 3.0, 
+                        scale: 20, //pixels
+                    },
+                    label: {
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        text: size.toString(),
+                    }
+                });
+                clusters.push(c)
+                return c
+            }
+
+            function clearClusters() {
+                clusters.forEach(c => {
+                    c.setMap(null)
+                })
+                clusters = []
+            }
+
+            var xhr
+            function loadForZoom(zoom, bb, callback) {
+
+                var north  =   bb.getNorthEast().lat();   
+                var east   =   bb.getNorthEast().lng();
+                var south  =   bb.getSouthWest().lat();   
+                var west   =   bb.getSouthWest().lng();  
+
+
+
+                if (xhr) xhr.abort()
+                xhr = new XMLHttpRequest()
+                xhr.open("POST", "/clusters")
+                xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                console.log(bb)
+                var payload = {
+                    zoom: zoom,
+                    bb: {
+                        nw: {
+                            lat: north,
+                            lng: west,   
+                        },
+                        se: {
+                            lat: south,
+                            lng: east,
+                        },
+                    }
+                } 
+                xhr.onreadystatechange = function(){
+                    if (xhr.readyState==4 && xhr.status==200) {
+                       return callback(JSON.parse(xhr.responseText))
+                    }
+                }
+                xhr.send(JSON.stringify(payload));
+                console.log("loading for zoom %d", zoom)
+            }
+
+            function buildClusters(data) {
+                clearClusters()
+                data.forEach(e => {
+                    var latlng = new google.maps.LatLng(e.Y, e.X)
+                    addCluster(latlng, e.NumPoints)
+                })
+            }
+
+            google.maps.event.addListener(map, 'bounds_changed', function() {
+                loadForZoom(map.getZoom(), map.getBounds(), buildClusters)
+            });
+
+            setTimeout(function() {
+                loadForZoom(map.getZoom(), map.getBounds(), buildClusters)
+            }, 200)
+        }
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1BxsRcI_p1S027RPcjPjdpsyZYblR7qI&callback=initMap">
+    </script>
+  </body>
+</html>

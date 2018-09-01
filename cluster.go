@@ -50,6 +50,8 @@ type Cluster struct {
 	PointSize int
 	TileSize  int
 	NodeSize  int
+	Radius    int
+	Extent    int
 	Indexes   []*kdbush.KDBush
 	Points    []GeoPoint
 
@@ -64,11 +66,21 @@ type Cluster struct {
 // NodeSize is size of the KD-tree node, 64 by default. Higher means faster indexing but slower search, and vise versa.
 func NewCluster() *Cluster {
 	return &Cluster{
+		// MinZoom:   0,
+		// MaxZoom:   16,
+		// PointSize: 40,
+		// TileSize:  512,
+		// NodeSize:  64,
+		// Radius:    40,
+		// Extent:    512,
+
 		MinZoom:   0,
 		MaxZoom:   16,
-		PointSize: 40,
+		PointSize: 240,
 		TileSize:  512,
-		NodeSize:  64,
+		NodeSize:  128,
+		Radius:    40,
+		Extent:    512,
 	}
 }
 
@@ -119,7 +131,7 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Cluster
 	index := c.Indexes[c.limitZoom(zoom)]
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
-	ids := index.Range(seX, seY, nwX, nwY)
+	ids := index.Range(nwX, nwY, seX, seY)
 	var result []ClusterPoint = make([]ClusterPoint, len(ids))
 	for i := range ids {
 		p := index.Points[ids[i]].(*ClusterPoint)
@@ -131,6 +143,54 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Cluster
 	}
 
 	return result
+}
+
+// GetClustersPointsInRadius ...
+// ((c.ClusterIdxSeed + pi) << 5) + zoom + 1
+func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*ClusterPoint {
+	// if clusterID is smaller than initial seed
+	// it means that it is original point from which
+	// cluster(s) are made
+	if clusterID < c.ClusterIdxSeed {
+		return []*ClusterPoint{}
+	}
+	originIndex := (clusterID >> 5) - c.ClusterIdxSeed
+	originZoom := (clusterID % 32) - 1
+	originTree := c.Indexes[originZoom]
+	originPoint := originTree.Points[originIndex]
+	r := float64(c.Radius) / (float64(c.Extent) * math.Pow(2.0, float64(originZoom)))
+	// r := 200.
+	treeBelow := c.Indexes[originZoom+1]
+	ids := treeBelow.Within(originPoint, r)
+	children := []*ClusterPoint{}
+	for _, i := range ids {
+		c := treeBelow.Points[i].(*ClusterPoint)
+		if c.ParentID != clusterID {
+			continue
+		}
+		children = append(children, c)
+	}
+	return children
+}
+
+// GetClusterExpansionZoom ...
+func (c *Cluster) GetClusterExpansionZoom(clusterID int) *int {
+	clusterZoom := (clusterID % 32) - 1
+	id := clusterID
+	for clusterZoom < int(c.MaxZoom) {
+		children := c.GetClustersPointsInRadius(id)
+		if len(children) == 0 {
+			return nil
+		}
+		clusterZoom++
+
+		// in case it's more then 1, then return current zoom
+		if len(children) != 1 {
+			break
+		}
+		id = children[0].Id
+	}
+	return &clusterZoom
 }
 
 // AllClusters returns all cluster points, array of ClusterPoint,  for zoom on the map.
@@ -293,6 +353,7 @@ func (c *Cluster) clusterize(points []*ClusterPoint, zoom int) []*ClusterPoint {
 			newCluster.Y = wy / float64(nPoints)
 			newCluster.NumPoints = nPoints
 			newCluster.zoom = InfinityZoomLevel
+			newCluster.ParentID = NoParent
 			// Create ID based on seed + index
 			// this is then shifted to create space for zoom
 			// this is useful when you need extract zoom from ID

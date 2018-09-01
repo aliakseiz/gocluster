@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/electrious/gocluster"
+	"github.com/kr/pretty"
+
+	"github.com/electrious/cluster"
 )
 
 type TestPoint struct {
@@ -77,8 +79,8 @@ func main() {
 	southEast := simplePoint{-71.01562500000001, 83.7539108491127}
 	c.ClusterPoints(geoPoints)
 
-	result := c.GetClusters(northWest, southEast, 18)
-
+	result := c.GetClusters(northWest, southEast, 0)
+	pretty.Println(c.GetClusterExpansionZoom(32001))
 	//result = c.GetTile(0,0,0)
 	fmt.Printf("Getting points: %+v\n length %v \n", result, len(result))
 
