@@ -28,19 +28,6 @@ func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
 	}
 }
 
-//type MercatorPoint struct {
-//	Cluster cluster.ClusterPoint
-//	MercatorX int
-//	MercatorY int
-//}
-//
-//func mercator(p cluster.ClusterPoint) MercatorPoint {
-//	mp := MercatorPoint{}
-//	mp.Cluster = p
-//	mp.MercatorX =
-//
-//}
-
 func importData(filename string) []*testPoint {
 	var points = struct {
 		Type     string
@@ -65,26 +52,19 @@ func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
 
 func main() {
 	points := importData("../../testdata/places.json")
-
-	c := cluster.NewCluster()
 	geoPoints := make([]cluster.GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.PointSize = 60
-	c.MaxZoom = 3
-	c.TileSize = 256
-	//c.NodeSize = 64
+	c, _ := cluster.New(geoPoints,
+		cluster.WithinZoom(0, 3),
+		cluster.WithPointSize(60),
+		cluster.WithTileSize(256))
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
-	c.WithPoints(geoPoints)
-
 	result := c.GetClusters(northWest, southEast, 0)
 	pretty.Println(c.GetClusterExpansionZoom(32001))
-	//result = c.GetTile(0,0,0)
 	fmt.Printf("Getting points: %+v\n length %v \n", result, len(result))
-
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Println(string(resultJSON))
-
 }

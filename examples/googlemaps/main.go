@@ -2,12 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/kr/pretty"
 
 	"github.com/electrious/cluster"
 	"github.com/electrious/cluster/examples/googlemaps/spherand"
@@ -54,13 +50,13 @@ type payload struct {
 var c *cluster.Cluster
 
 func main() {
-	fmt.Printf("creating random samples\n")
-	createSamplesRandomly(1000000)
-	fmt.Printf("samples created\n")
+	log.Printf("creating random samples\n")
+	c = createCluster(1000000)
+	log.Printf("samples created\n")
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/clusters", parseGhPost)
-	fmt.Printf("listening to 8080\n")
+	log.Printf("listening to 8080\n")
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -68,15 +64,13 @@ func parseGhPost(rw http.ResponseWriter, request *http.Request) {
 	log.Println("received request")
 	log.Println(request.URL.String())
 	decoder := json.NewDecoder(request.Body)
-
 	var t payload
 	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
 	}
-	pretty.Println(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
+	// pretty.Println(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
 	points := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
-	// points := c.AllClusters(t.Zoom)
 	data, err := json.Marshal(points)
 	if err != nil {
 		panic(err)
@@ -84,47 +78,24 @@ func parseGhPost(rw http.ResponseWriter, request *http.Request) {
 	rw.Write(data)
 }
 
-// lat, lng := spherand.Geographical()
-
-func createSamplesFromJSON() {
-	points := importData("../../testdata/places.json")
-	c = cluster.NewCluster()
-	geoPoints := make([]cluster.GeoPoint, len(points))
-	for i := range points {
-		geoPoints[i] = points[i]
-	}
-	c.WithPoints(geoPoints)
-}
-
-func createSamplesRandomly(num int) {
-	c = cluster.NewCluster()
-	log.Printf("generating ranom lat/lngs")
-	latlngs := make([]cluster.GeoPoint, num)
-	for i := range latlngs {
+func createCluster(num int) *cluster.Cluster {
+	log.Printf("generating random lat/lng")
+	coords := make([]cluster.GeoPoint, num)
+	for i := range coords {
 		lat, lng := spherand.Geographical()
-		latlngs[i] = latlng{lat, lng}
+		coords[i] = latlng{lat, lng}
 	}
-	geoPoints := make([]cluster.GeoPoint, len(latlngs))
-	for i := range latlngs {
-		geoPoints[i] = latlngs[i]
+	geoPoints := make([]cluster.GeoPoint, len(coords))
+	for i := range coords {
+		geoPoints[i] = coords[i]
 	}
-
-	log.Printf("starting clustring")
-	c.WithPoints(geoPoints)
-	log.Printf("clustering done")
-}
-
-func importData(filename string) []testPoint {
-	var points = struct {
-		Type     string
-		Features []testPoint
-	}{}
-	raw, err := ioutil.ReadFile(filename)
+	log.Printf("starting clustering")
+	c, err := cluster.New(coords,
+		cluster.WithNodeSize(64),
+		cluster.WithPointSize(240))
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		panic(err)
 	}
-	json.Unmarshal(raw, &points)
-	//fmt.Printf("Gett data: %+v\n",points)
-	return points.Features
+	log.Printf("clustering done")
+	return c
 }

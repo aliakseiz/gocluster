@@ -16,7 +16,7 @@ func TestNewCluster(t *testing.T) {
 	} else {
 		t.Logf("Getting %v points to test\n", len(points))
 	}
-	c := NewCluster()
+	c, _ := New([]GeoPoint{})
 	assert.Equal(t, c.MinZoom, 0, "they should be equal")
 	assert.Equal(t, c.MaxZoom, 16, "they should be equal")
 	assert.Equal(t, c.PointSize, 40, "they should be equal")
@@ -31,16 +31,15 @@ func TestCluster_GetTile00(t *testing.T) {
 	} else {
 		t.Logf("Getting %v points to test\n", len(points))
 	}
-	c := NewCluster()
 	geoPoints := make([]GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.PointSize = 60
-	c.MaxZoom = 3
-	c.TileSize = 256
-	c.NodeSize = 64
-	c.WithPoints(geoPoints)
+	c, _ := New(geoPoints,
+		WithinZoom(0, 3),
+		WithPointSize(60),
+		WithTileSize(256),
+		WithNodeSize(64))
 	result := c.GetTile(0, 0, 0)
 	assert.NotEmpty(t, result)
 	expectedPoints := importPoints("./testdata/expect_tile0_0_0.json")
@@ -55,12 +54,11 @@ func TestCluster_GetTileDefault(t *testing.T) {
 	} else {
 		t.Logf("Getting %v points to test\n", len(points))
 	}
-	c := NewCluster()
 	geoPoints := make([]GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.WithPoints(geoPoints)
+	c, _ := New(geoPoints)
 	result := c.GetTile(0, 0, 0)
 	assert.NotEmpty(t, result)
 	expectedPoints := importGeoJSONResultFeature("./testdata/places-z0-0-0.json")
@@ -83,16 +81,15 @@ func TestCluster_GetClusters(t *testing.T) {
 	} else {
 		t.Logf("Getting %v points to test\n", len(points))
 	}
-	c := NewCluster()
 	geoPoints := make([]GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.PointSize = 40
-	c.MaxZoom = 17
-	c.TileSize = 512
-	c.NodeSize = 64
-	c.WithPoints(geoPoints)
+	c, _ := New(geoPoints,
+		WithinZoom(0, 17),
+		WithPointSize(40),
+		WithTileSize(512),
+		WithNodeSize(64))
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
 	result := c.GetClusters(northWest, southEast, 2)
@@ -119,24 +116,19 @@ func TestCluster_AllClusters(t *testing.T) {
 	} else {
 		t.Logf("Getting %v points to test\n", len(points))
 	}
-
-	c := NewCluster()
 	geoPoints := make([]GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.PointSize = 40
-	c.MaxZoom = 17
-	c.TileSize = 512
-	c.NodeSize = 64
-	c.WithPoints(geoPoints)
-
+	c, _ := New(geoPoints,
+		WithinZoom(0, 17),
+		WithPointSize(40),
+		WithTileSize(512),
+		WithNodeSize(64))
 	result := c.AllClusters(2)
 	assert.NotEmpty(t, result)
-
 	//resultJSON, _ :=  json.MarshalIndent(result,"","    ")
 	//fmt.Printf("getting points %v \n",string(resultJSON))
-
 	assert.Equal(t, 100, len(result))
 
 }
@@ -148,7 +140,6 @@ func Test_MercatorProjection(t *testing.T) {
 	x, y := MercatorProjection(coords)
 	assert.Equal(t, x, 0.2804330060970208)
 	assert.Equal(t, y, 0.36711590445377973)
-
 	coords = GeoCoordinates{
 		Lon: -62.06181800038502,
 		Lat: 5.686896063275327,
@@ -160,19 +151,15 @@ func Test_MercatorProjection(t *testing.T) {
 
 func ExampleCluster_GetTile() {
 	points := importData("./testdata/places.json")
-
-	c := NewCluster()
-	c.PointSize = 60
-	c.MaxZoom = 3
-	c.TileSize = 256
-	c.NodeSize = 64
-
 	geoPoints := make([]GeoPoint, len(points))
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-
-	c.WithPoints(geoPoints)
+	c, _ := New(geoPoints,
+		WithinZoom(0, 3),
+		WithPointSize(60),
+		WithTileSize(256),
+		WithNodeSize(64))
 	result := c.GetTile(0, 0, 4)
 	fmt.Printf("%+v", result)
 	// Output: [{X:-2418 Y:165 zoom:0 ID:62 NumPoints:1 ParentID:32257} {X:-3350 Y:253 zoom:0 ID:22 NumPoints:1 ParentID:-1}]
@@ -185,8 +172,7 @@ func ExampleCluster_GetClusters() {
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c := NewCluster()
-	c.WithPoints(geoPoints)
+	c, _ := New(geoPoints)
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	result := c.GetClusters(northWest, southEast, 2)

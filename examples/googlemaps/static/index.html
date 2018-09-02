@@ -39,9 +39,6 @@
                         path: google.maps.SymbolPath.CIRCLE,
                         fillOpacity: 1,
                         fillColor: '#000',
-                        // strokeOpacity: 1.0,
-                        // strokeColor: '#000',
-                        // strokeWeight: 3.0, 
                         scale: 20, //pixels
                     },
                     label: {
@@ -64,14 +61,10 @@
 
             var xhr
             function loadForZoom(zoom, bb, callback) {
-
-                var north  =   bb.getNorthEast().lat();   
+                var north  =   bb.getNorthEast().lat();
                 var east   =   bb.getNorthEast().lng();
-                var south  =   bb.getSouthWest().lat();   
-                var west   =   bb.getSouthWest().lng();  
-
-
-
+                var south  =   bb.getSouthWest().lat();
+                var west   =   bb.getSouthWest().lng();
                 if (xhr) xhr.abort()
                 xhr = new XMLHttpRequest()
                 xhr.open("POST", "/clusters")
