@@ -55,7 +55,7 @@ var c *cluster.Cluster
 
 func main() {
 	fmt.Printf("creating random samples\n")
-	createSamplesRandomly(500000)
+	createSamplesRandomly(5000000)
 	fmt.Printf("samples created\n")
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
