@@ -10,7 +10,7 @@ import (
 	"github.com/electrious/cluster"
 )
 
-type TestPoint struct {
+type testPoint struct {
 	Type       string
 	Properties struct {
 		//we don't need other data
@@ -21,7 +21,7 @@ type TestPoint struct {
 	}
 }
 
-func (tp *TestPoint) GetCoordinates() cluster.GeoCoordinates {
+func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
 	return cluster.GeoCoordinates{
 		Lon: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
@@ -41,10 +41,10 @@ func (tp *TestPoint) GetCoordinates() cluster.GeoCoordinates {
 //
 //}
 
-func importData(filename string) []*TestPoint {
+func importData(filename string) []*testPoint {
 	var points = struct {
 		Type     string
-		Features []*TestPoint
+		Features []*testPoint
 	}{}
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -60,11 +60,11 @@ type simplePoint struct {
 }
 
 func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{sp.Lon, sp.Lat}
+	return cluster.GeoCoordinates{Lon: sp.Lon, Lat: sp.Lat}
 }
 
 func main() {
-	points := importData("./testdata/places.json")
+	points := importData("../../testdata/places.json")
 
 	c := cluster.NewCluster()
 	geoPoints := make([]cluster.GeoPoint, len(points))
@@ -75,9 +75,9 @@ func main() {
 	c.MaxZoom = 3
 	c.TileSize = 256
 	//c.NodeSize = 64
-	northWest := simplePoint{71.36718750000001, -83.79204408779539}
-	southEast := simplePoint{-71.01562500000001, 83.7539108491127}
-	c.ClusterPoints(geoPoints)
+	southEast := simplePoint{71.36718750000001, -83.79204408779539}
+	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
+	c.WithPoints(geoPoints)
 
 	result := c.GetClusters(northWest, southEast, 0)
 	pretty.Println(c.GetClusterExpansionZoom(32001))

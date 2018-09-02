@@ -55,7 +55,7 @@ var c *cluster.Cluster
 
 func main() {
 	fmt.Printf("creating random samples\n")
-	createSamplesRandomly(5000000)
+	createSamplesRandomly(1000000)
 	fmt.Printf("samples created\n")
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
@@ -93,7 +93,7 @@ func createSamplesFromJSON() {
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
-	c.ClusterPoints(geoPoints)
+	c.WithPoints(geoPoints)
 }
 
 func createSamplesRandomly(num int) {
@@ -110,7 +110,7 @@ func createSamplesRandomly(num int) {
 	}
 
 	log.Printf("starting clustring")
-	c.ClusterPoints(geoPoints)
+	c.WithPoints(geoPoints)
 	log.Printf("clustering done")
 }
 

@@ -2,10 +2,10 @@
 //
 // Copyright (c) 2016 MadAppGang
 
-// A very fast Golang library for geospatial point clustering.
+// Package cluster a very fast Golang library for geospatial point clustering.
 //
 //
-// gocluster is very fast library for  geospatial point clustering server side (or client side)
+// cluster is very fast library for  geospatial point clustering server side (or client side)
 //
 // The cluster use hierarchical greedy clustering approach.
 //
