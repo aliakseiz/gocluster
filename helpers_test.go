@@ -36,7 +36,7 @@ type GeoJSONResultFeature struct {
 
 func (tp *TestPoint) GetCoordinates() GeoCoordinates {
 	return GeoCoordinates{
-		Lon: tp.Geometry.Coordinates[0],
+		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}
 }

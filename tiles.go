@@ -8,13 +8,13 @@ func (c *Cluster) GetTile(x, y, z int) []Point {
 	return c.getTile(x, y, z, false)
 }
 
-// GetTileWithLatLon return points for  Tile with coordinates x and y and for zoom z
-// return objects with LatLon coordinates
-func (c *Cluster) GetTileWithLatLon(x, y, z int) []Point {
+// GetTileWithLatLng return points for  Tile with coordinates x and y and for zoom z
+// return objects with LatLng coordinates
+func (c *Cluster) GetTileWithLatLng(x, y, z int) []Point {
 	return c.getTile(x, y, z, true)
 }
 
-func (c *Cluster) getTile(x, y, z int, latlon bool) []Point {
+func (c *Cluster) getTile(x, y, z int, latlng bool) []Point {
 	index := c.Indexes[c.limitZoom(z)]
 	z2 := 1 << uint(z)
 	z2f := float64(z2)
@@ -30,8 +30,8 @@ func (c *Cluster) getTile(x, y, z int, latlon bool) []Point {
 		bottom,
 	)
 	var result []Point
-	if latlon == true {
-		result = c.pointIDToLatLonPoint(resultIds, index.Points)
+	if latlng == true {
+		result = c.pointIDToLatLngPoint(resultIds, index.Points)
 	} else {
 		result = c.pointIDToMercatorPoint(resultIds, index.Points, float64(x), float64(y), z2f)
 	}
@@ -42,8 +42,8 @@ func (c *Cluster) getTile(x, y, z int, latlon bool) []Point {
 		maxY1 := float64(bottom)
 		resultIds = index.Range(minX1, minY1, maxX1, maxY1)
 		var sr1 []Point
-		if latlon == true {
-			sr1 = c.pointIDToLatLonPoint(resultIds, index.Points)
+		if latlng == true {
+			sr1 = c.pointIDToLatLngPoint(resultIds, index.Points)
 		} else {
 			sr1 = c.pointIDToMercatorPoint(resultIds, index.Points, z2f, float64(y), z2f)
 		}
@@ -57,8 +57,8 @@ func (c *Cluster) getTile(x, y, z int, latlon bool) []Point {
 		maxY2 := float64(bottom)
 		resultIds = index.Range(minX2, minY2, maxX2, maxY2)
 		var sr2 []Point
-		if latlon == true {
-			sr2 = c.pointIDToLatLonPoint(resultIds, index.Points)
+		if latlng == true {
+			sr2 = c.pointIDToLatLngPoint(resultIds, index.Points)
 		} else {
 			sr2 = c.pointIDToMercatorPoint(resultIds, index.Points, -1, float64(y), z2f)
 		}
@@ -82,13 +82,13 @@ func (c *Cluster) pointIDToMercatorPoint(ids []int, points []kdbush.Point, x, y,
 	return result
 }
 
-func (c *Cluster) pointIDToLatLonPoint(ids []int, points []kdbush.Point) []Point {
+func (c *Cluster) pointIDToLatLngPoint(ids []int, points []kdbush.Point) []Point {
 	result := make([]Point, len(ids))
 	for i := range ids {
 		p := points[ids[i]].(*Point)
 		cp := *p
 		coordinates := ReverseMercatorProjection(cp.X, cp.Y)
-		cp.X = coordinates.Lon
+		cp.X = coordinates.Lng
 		cp.Y = coordinates.Lat
 		result[i] = cp
 	}

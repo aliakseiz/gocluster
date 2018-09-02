@@ -15,36 +15,34 @@ const (
 
 // Cluster struct get a list or stream of geo objects
 // and produce all levels of clusters
-// MinZoom - minimum  zoom level to generate clusters
-// MaxZoom - maximum zoom level to generate clusters
 // Zoom range is limited by 0 to 21, and MinZoom could not be larger, then MaxZoom
-// PointSize - pixel size of marker, affects clustering radius
-// TileSize - size of tile in pixels, affects clustering radius
 type Cluster struct {
-	MinZoom   int
-	MaxZoom   int
+	// MinZoom minimum  zoom level to generate clusters
+	MinZoom int
+	// MaxZoom maximum zoom level to generate clusters
+	MaxZoom int
+	// PointSize pixel size of marker, affects clustering radius
 	PointSize int
-	TileSize  int
-	NodeSize  int
-	Radius    int
-	Extent    int
-	Indexes   []*kdbush.KDBush
-	Points    []GeoPoint
-
-	ClusterIdxSeed int
+	// TileSize size of tile in pixels, affects clustering radius
+	TileSize int
+	// NodeSize is size of the KD-tree node, 64 by default. Higher means faster indexing but slower search, and vise versa.
+	NodeSize int
+	// Radius affects in which distance child points of cluster can be found
+	Radius int
+	// Extent as another parameter affecting child search
+	Extent int
+	// Indexes keeps all KDBush trees
+	Indexes []*kdbush.KDBush
+	// Points keeps original slice of given points
+	Points         []GeoPoint
+	clusterIdxSeed int
 }
 
-// New create new Cluster instance with default parameters:
-// MinZoom = 0
-// MaxZoom = 16
-// PointSize = 40
-// TileSize = 512 (GMaps and OSM default)
-// NodeSize is size of the KD-tree node, 64 by default. Higher means faster indexing but slower search, and vise versa.
-//
-// WithPoints get points and create multilevel clustered indexes
-// All points should implement GeoPoint interface
-// they are not copied, so you could not worry about memory efficiency
-// And GetCoordinates called only once for each object, so you could calc it on the fly, if you need
+// New create new Cluster instance with default params.
+// Will use points and create multilevel clustered indexes.
+// All points should implement GeoPoint interface.
+// They are not copied, so you could not worry about memory efficiency.
+// And GetCoordinates called only once for each object, so you could calc it on the fly, if you need.
 func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	cluster := &Cluster{
 		MinZoom:   0,
@@ -71,7 +69,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	// get digits number, start from next exponent
 	// if we have 78, all cluster will start from 100...
 	// if we have 986 points, all clusters ids will start from 1000
-	cluster.ClusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
+	cluster.clusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
 	clusters := translateGeoPointsToPoints(points)
 	for z := cluster.MaxZoom; z >= cluster.MinZoom; z-- {
 		//create index from clusters from previous iteration
@@ -101,7 +99,7 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Point {
 		p := index.Points[ids[i]].(*Point)
 		cp := *p
 		coordinates := ReverseMercatorProjection(cp.X, cp.Y)
-		cp.X = coordinates.Lon
+		cp.X = coordinates.Lng
 		cp.Y = coordinates.Lat
 		result[i] = cp
 	}
@@ -115,10 +113,10 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 	// if clusterID is smaller than initial seed
 	// it means that it is original point from which
 	// cluster(s) are made
-	if clusterID < c.ClusterIdxSeed {
+	if clusterID < c.clusterIdxSeed {
 		return []*Point{}
 	}
-	originIndex := (clusterID >> 5) - c.ClusterIdxSeed
+	originIndex := (clusterID >> 5) - c.clusterIdxSeed
 	originZoom := (clusterID % 32) - 1
 	originTree := c.Indexes[originZoom]
 	originPoint := originTree.Points[originIndex]
@@ -169,7 +167,7 @@ func (c *Cluster) AllClusters(zoom int) []Point {
 		p := index.Points[i].(*Point)
 		cp := *p
 		coordinates := ReverseMercatorProjection(cp.X, cp.Y)
-		cp.X = coordinates.Lon
+		cp.X = coordinates.Lng
 		cp.Y = coordinates.Lat
 		result[i] = cp
 	}
@@ -220,7 +218,7 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 			// create ID based on seed + index
 			// this is then shifted to create space for zoom
 			// this is useful when you need extract zoom from ID
-			newCluster.ID = ((c.ClusterIdxSeed + pi) << 5) + zoom + 1
+			newCluster.ID = ((c.clusterIdxSeed + pi) << 5) + zoom + 1
 			for _, p := range foundNeighbours {
 				p.ParentID = newCluster.ID
 			}
@@ -245,26 +243,3 @@ func (c *Cluster) limitZoom(zoom int) int {
 /////////////////////////////////
 // private stuff
 /////////////////////////////////
-
-//translate geopoints to Points witrh projection coordinates
-func translateGeoPointsToPoints(points []GeoPoint) []*Point {
-	var result = make([]*Point, len(points))
-	for i, p := range points {
-		cp := Point{}
-		cp.zoom = InfinityZoomLevel
-		cp.X, cp.Y = MercatorProjection(p.GetCoordinates())
-		result[i] = &cp
-		cp.NumPoints = 1
-		cp.ID = i
-		cp.ParentID = NoParent
-	}
-	return result
-}
-
-func clustersToPoints(points []*Point) []kdbush.Point {
-	result := make([]kdbush.Point, len(points))
-	for i, v := range points {
-		result[i] = v
-	}
-	return result
-}

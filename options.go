@@ -21,7 +21,8 @@ func WithPointSize(size int) Option {
 	}
 }
 
-// WithTileSize will set tile size
+// WithTileSize will set tile size.
+// TileSize = 512 (GMaps and OSM default)
 func WithTileSize(size int) Option {
 	return func(c *Cluster) error {
 		c.TileSize = size
@@ -38,7 +39,7 @@ func WithinZoom(min, max int) Option {
 	}
 }
 
-// WithNodeSize will set node size
+// WithNodeSize will set node size.
 func WithNodeSize(size int) Option {
 	return func(c *Cluster) error {
 		c.NodeSize = size

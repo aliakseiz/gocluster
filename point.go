@@ -1,5 +1,7 @@
 package cluster
 
+import "github.com/electrious/kdbush"
+
 // Point struct that implements clustered points
 //could have only one point or set of points
 type Point struct {
@@ -14,4 +16,39 @@ type Point struct {
 // Coordinates to be compatible with interface
 func (cp *Point) Coordinates() (float64, float64) {
 	return cp.X, cp.Y
+}
+
+// GeoCoordinates represent position in the Earth
+type GeoCoordinates struct {
+	Lng float64
+	Lat float64
+}
+
+// GeoPoint interface returning lat/lng coordinates.
+// All object, that you want to cluster should implement this protocol
+type GeoPoint interface {
+	GetCoordinates() GeoCoordinates
+}
+
+//translate geopoints to Points witrh projection coordinates
+func translateGeoPointsToPoints(points []GeoPoint) []*Point {
+	var result = make([]*Point, len(points))
+	for i, p := range points {
+		cp := Point{}
+		cp.zoom = InfinityZoomLevel
+		cp.X, cp.Y = MercatorProjection(p.GetCoordinates())
+		result[i] = &cp
+		cp.NumPoints = 1
+		cp.ID = i
+		cp.ParentID = NoParent
+	}
+	return result
+}
+
+func clustersToPoints(points []*Point) []kdbush.Point {
+	result := make([]kdbush.Point, len(points))
+	for i, v := range points {
+		result[i] = v
+	}
+	return result
 }
