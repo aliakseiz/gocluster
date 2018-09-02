@@ -237,9 +237,3 @@ func (c *Cluster) limitZoom(zoom int) int {
 	}
 	return zoom
 }
-
-////////// End of Cluster implementation
-
-/////////////////////////////////
-// private stuff
-/////////////////////////////////
