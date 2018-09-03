@@ -1,6 +1,6 @@
 package cluster
 
-import "github.com/electrious/kdbush"
+import "github.com/electrious-go/kdbush"
 
 // GetTile return points for  Tile with coordinates x and y and for zoom z
 // return objects with pixel coordinates

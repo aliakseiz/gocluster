@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/kr/pretty"
-
-	"github.com/electrious/cluster"
+	"github.com/electrious-go/cluster"
 )
 
 type testPoint struct {
@@ -63,7 +61,6 @@ func main() {
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
 	result := c.GetClusters(northWest, southEast, 0)
-	pretty.Println(c.GetClusterExpansionZoom(32001))
 	fmt.Printf("Getting points: %+v\n length %v \n", result, len(result))
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Println(string(resultJSON))

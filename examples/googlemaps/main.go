@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/electrious/cluster"
-	"github.com/electrious/cluster/examples/googlemaps/spherand"
-	_ "github.com/electrious/cluster/examples/googlemaps/static"
+	"github.com/electrious-go/cluster"
+	"github.com/electrious-go/cluster/examples/googlemaps/spherand"
+	_ "github.com/electrious-go/cluster/examples/googlemaps/static"
 	"github.com/rakyll/statik/fs"
 )
 
@@ -80,7 +80,6 @@ func clustersEndpoint(rw http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	// pretty.Println(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
 	points := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
 	data, err := json.Marshal(points)
 	if err != nil {

@@ -3,7 +3,7 @@ package cluster
 import (
 	"math"
 
-	"github.com/electrious/kdbush"
+	"github.com/electrious-go/kdbush"
 )
 
 const (

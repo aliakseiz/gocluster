@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"github.com/electrious/kdbush"
+	"github.com/electrious-go/kdbush"
 )
 
 // Point struct that implements clustered points
