@@ -31,7 +31,7 @@
 
             var clusters = []
 
-            function addCluster(location, size) {
+            function addCluster(id, location, size) {
                 var c = new google.maps.Marker({
                     position: location,
                     map: map,
@@ -39,7 +39,7 @@
                         path: google.maps.SymbolPath.CIRCLE,
                         fillOpacity: 1,
                         fillColor: '#000',
-                        scale: 20, //pixels
+                        scale: 10, //pixels
                     },
                     label: {
                         color: '#fff',
@@ -47,6 +47,17 @@
                         fontSize: '14px',
                         text: size.toString(),
                     }
+                });
+                c.addListener('click', function() {
+                    loadToGetZoom(id, function(data) {
+                        console.log(data)
+                        if(data.zoom == null) {
+                            console.log("cannot zoom more")
+                            return
+                        }
+                        map.setZoom(data.zoom);
+                        map.setCenter(c.getPosition());
+                    })
                 });
                 clusters.push(c)
                 return c
@@ -92,13 +103,45 @@
                 console.log("loading for zoom %d", zoom)
             }
 
+            function loadToGetZoom(clusterID, callback) {
+                var xhr = new XMLHttpRequest()
+                xhr.open("POST", "/zoom")
+                xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                var payload = {
+                    clusterID: clusterID,
+                } 
+                xhr.onreadystatechange = function(){
+                    if (xhr.readyState==4 && xhr.status==200) {
+                       return callback(JSON.parse(xhr.responseText))
+                    }
+                }
+                xhr.send(JSON.stringify(payload));
+                console.log("getting zoom for %d", clusterID)
+            }
+
             function buildClusters(data) {
                 clearClusters()
                 data.forEach(e => {
                     var latlng = new google.maps.LatLng(e.Y, e.X)
-                    addCluster(latlng, e.NumPoints)
+                    addCluster(e.ID, latlng, e.NumPoints)
                 })
             }
+
+
+            // the smooth zoom function
+            function smoothZoom (map, max, cnt) {
+                if (cnt >= max) {
+                    return;
+                }
+                else {
+                    z = google.maps.event.addListener(map, 'zoom_changed', function(event){
+                        google.maps.event.removeListener(z);
+                        smoothZoom(map, max, cnt + 1);
+                    });
+                    setTimeout(function(){map.setZoom(cnt)}, 80); // 80ms is what I found to work well on my system -- it might not work well on all systems
+                }
+            }  
+
 
             google.maps.event.addListener(map, 'bounds_changed', function() {
                 loadForZoom(map.getZoom(), map.getBounds(), buildClusters)

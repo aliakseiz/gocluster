@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/electrious/cluster"
 	"github.com/electrious/cluster/examples/googlemaps/spherand"
+	_ "github.com/electrious/cluster/examples/googlemaps/static"
+	"github.com/rakyll/statik/fs"
 )
 
 type testPoint struct {
@@ -23,7 +26,7 @@ type testPoint struct {
 
 func (tp testPoint) GetCoordinates() cluster.GeoCoordinates {
 	return cluster.GeoCoordinates{
-		Lon: tp.Geometry.Coordinates[0],
+		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}
 }
@@ -34,7 +37,7 @@ type latlng struct {
 }
 
 func (tp latlng) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{Lon: tp.Lng, Lat: tp.Lat}
+	return cluster.GeoCoordinates{Lng: tp.Lng, Lat: tp.Lat}
 }
 
 type boundingBox struct {
@@ -47,20 +50,28 @@ type payload struct {
 	BoundingBox boundingBox `json:"bb"`
 }
 
+type payload2 struct {
+	ClusterID int `json:"clusterID"`
+}
+
 var c *cluster.Cluster
 
 func main() {
 	log.Printf("creating random samples\n")
 	c = createCluster(1000000)
 	log.Printf("samples created\n")
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/", fs)
-	http.HandleFunc("/clusters", parseGhPost)
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	http.Handle("/", http.FileServer(statikFS))
+	http.HandleFunc("/clusters", clustersEndpoint)
+	http.HandleFunc("/zoom", zoomEndpoint)
 	log.Printf("listening to 8080\n")
 	http.ListenAndServe(":8080", nil)
 }
 
-func parseGhPost(rw http.ResponseWriter, request *http.Request) {
+func clustersEndpoint(rw http.ResponseWriter, request *http.Request) {
 	log.Println("received request")
 	log.Println(request.URL.String())
 	decoder := json.NewDecoder(request.Body)
@@ -78,6 +89,20 @@ func parseGhPost(rw http.ResponseWriter, request *http.Request) {
 	rw.Write(data)
 }
 
+func zoomEndpoint(rw http.ResponseWriter, request *http.Request) {
+	log.Println("received request")
+	log.Println(request.URL.String())
+	decoder := json.NewDecoder(request.Body)
+	var t payload2
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	zoom := c.GetClusterExpansionZoom(t.ClusterID)
+	l := []byte(fmt.Sprintf(`{"zoom": %d}`, zoom))
+	rw.Write(l)
+}
+
 func createCluster(num int) *cluster.Cluster {
 	log.Printf("generating random lat/lng")
 	coords := make([]cluster.GeoPoint, num)
@@ -92,7 +117,7 @@ func createCluster(num int) *cluster.Cluster {
 	log.Printf("starting clustering")
 	c, err := cluster.New(coords,
 		cluster.WithNodeSize(64),
-		cluster.WithPointSize(240))
+		cluster.WithPointSize(120))
 	if err != nil {
 		panic(err)
 	}
