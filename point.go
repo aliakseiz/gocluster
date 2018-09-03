@@ -1,6 +1,8 @@
 package cluster
 
-import "github.com/electrious/kdbush"
+import (
+	"github.com/electrious/kdbush"
+)
 
 // Point struct that implements clustered points
 //could have only one point or set of points
@@ -9,8 +11,6 @@ type Point struct {
 	zoom      int
 	ID        int //Index for pint, Id for cluster
 	NumPoints int
-	ParentID  int
-	//IncludedPoints []int TODO: Implement inclusion of objects
 }
 
 // Coordinates to be compatible with interface
@@ -40,7 +40,6 @@ func translateGeoPointsToPoints(points []GeoPoint) []*Point {
 		result[i] = &cp
 		cp.NumPoints = 1
 		cp.ID = i
-		cp.ParentID = NoParent
 	}
 	return result
 }

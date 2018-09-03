@@ -70,6 +70,6 @@ func ExampleCluster_GetTile() {
 		WithNodeSize(64))
 	result := c.GetTile(0, 0, 4)
 	fmt.Printf("%+v", result)
-	// Output: [{X:-2418 Y:165 zoom:0 ID:62 NumPoints:1 ParentID:32257} {X:-3350 Y:253 zoom:0 ID:22 NumPoints:1 ParentID:-1}]
+	// Output: [{X:-2418 Y:165 zoom:0 ID:62 NumPoints:1} {X:-3350 Y:253 zoom:0 ID:22 NumPoints:1}]
 
 }

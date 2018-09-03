@@ -48,7 +48,6 @@ func (c *Cluster) getTile(x, y, z int, latlng bool) []Point {
 			sr1 = c.pointIDToMercatorPoint(resultIds, index.Points, z2f, float64(y), z2f)
 		}
 		result = append(result, sr1...)
-
 	}
 	if x == (z2 - 1) {
 		minX2 := 0.0

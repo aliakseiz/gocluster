@@ -88,5 +88,5 @@ func ExampleCluster_GetClusters() {
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	result := c.GetClusters(northWest, southEast, 2)
 	fmt.Printf("%+v", result[:3])
-	// Output: [{X:-14.473194953510028 Y:26.157965399212813 zoom:1 ID:107 NumPoints:1 ParentID:32514} {X:-12.408741828510014 Y:58.16339752811905 zoom:1 ID:159 NumPoints:1 ParentID:33634} {X:-9.269962828651519 Y:42.928736057812586 zoom:1 ID:127 NumPoints:1 ParentID:32674}]
+	// Output: [{X:-14.473194953510028 Y:26.157965399212813 zoom:1 ID:107 NumPoints:1} {X:-12.408741828510014 Y:58.16339752811905 zoom:1 ID:159 NumPoints:1} {X:-9.269962828651519 Y:42.928736057812586 zoom:1 ID:127 NumPoints:1}]
 }

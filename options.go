@@ -46,19 +46,3 @@ func WithNodeSize(size int) Option {
 		return nil
 	}
 }
-
-// WithRadius will set radius size
-func WithRadius(radius int) Option {
-	return func(c *Cluster) error {
-		c.Radius = radius
-		return nil
-	}
-}
-
-// WithExtent will set extent size
-func WithExtent(extent int) Option {
-	return func(c *Cluster) error {
-		c.Extent = extent
-		return nil
-	}
-}
