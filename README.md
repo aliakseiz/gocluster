@@ -57,7 +57,7 @@ type GeoPoint interface {
 }
 
 type GeoCoordinates struct {
-	Lon float64
+	Lng float64
 	Lat float64
 }
 ```
@@ -120,6 +120,6 @@ results := c.GetTile(tileX, tileY, zoom)
 
 ```
 In this case all coordinates are returned in pixels for that tile.
-If you want to return objects with Lat, Long, use `GetTileWithLatLon` method.
+If you want to return objects with Lat, Lng, use `GetTileWithLatLng` method.
 
 TODO: Benchmarks
