@@ -23,7 +23,7 @@ type testPoint struct {
 
 func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
 	return cluster.GeoCoordinates{
-		Lon: tp.Geometry.Coordinates[0],
+		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}
 }
@@ -43,11 +43,11 @@ func importData(filename string) []*testPoint {
 }
 
 type simplePoint struct {
-	Lon, Lat float64
+	Lng, Lat float64
 }
 
 func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{Lon: sp.Lon, Lat: sp.Lat}
+	return cluster.GeoCoordinates{Lng: sp.Lng, Lat: sp.Lat}
 }
 
 func main() {
