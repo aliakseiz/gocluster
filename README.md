@@ -1,12 +1,20 @@
-# Gocluster
+# Cluster
 
-Please look at [godocs here](https://godoc.org/github.com/MadAppGang/gocluster).
+**The origin of this library is in [GoCluster](https://github.com/MadAppGang/gocluster)**
 
-Gocluster is a very fast Golang library for geospatial point clustering.
+**Guys did amazing job**
+
+This fork is better implementation with few additional features.
+	
+	- Method to obtain expansion zoom
+	- Google maps example
+	- Better (refactored) implementation
+
+Please look at [godocs here](https://godoc.org/github.com/electrious-go/cluster).
+
+Cluster is a very fast Golang library for geospatial point clustering.
 
 This image is demo of JS library, this will work faster, because Golang is faster :-)
-
-TODO: implement goserver example
 
 ![clusters2](https://cloud.githubusercontent.com/assets/25395/11857351/43407b46-a40c-11e5-8662-e99ab1cd2cb7.gif)
 
@@ -20,30 +28,25 @@ This library is deeply inspired by MapBox's superclaster JS library and blog pos
 Very easy to use:
 
 ```go
-//1.Create new cluster
-c := NewCluster()
-//2.Convert slice of your objects to slice of GeoPoint (interface) objects
+
+// 1.Convert slice of your objects to slice of GeoPoint (interface) objects
 geoPoints := make([]GeoPoint, len(points))
 for i := range points {
   geoPoints[i] = points[i]
 }
-//3.Build index
-c.ClusterPoints(geoPoints)
-//3.Get tour tile with mercator coordinate projections to display directly on the map
+// 2.Create new cluster (this will build index)
+c, _ := cluster.New(geoPoints, cluster.WithinZoom(0, 21))
+
+// 3.Get tour tile with mercator coordinate projections to display directly on the map
 result := c.GetTile(0,0,0)
+// or get all clusters for zoom 10
+results := c.AllClusters(10) 
 ```
 
-Library has only one dependency, [it's KD-tree geospatial index](https://github.com/MadAppGang/kdbush)
+Library has only one dependency, [it's KD-tree geospatial index](https://github.com/electrious-go/kdbush)
 
-All ids of `ClusterPoint` that you have as result are the index of initial array of Geopoint,
+All ids of `Point` that you have as result are the index of initial array of Geopoint,
 so you could get you point by this index.
-
-Clusters of points are have autoincrement generated ids, started at `ClusterIdxSeed`.
-
-`ClusterIdxSeed` is the next power of length of input array.
-For example, if input slice of points length is `78`,  `ClusterIdxSeed == 100`,
-if input slice of points length is `991`,  `ClusterIdxSeed == 1000`
-etc
 
 ## Init cluster index
 
@@ -67,8 +70,19 @@ You could tweak the `Cluster`:
 |MaxZoom | 16 | Minimum zoom level at which clusters are generated |
 |PointSize | 40 | Cluster radius, in pixels |
 |TileSize | 512 | Tile extent. Radius is calculated relative to this value |
-|NodeSize | 64 | Minimum zoom level at which clusters are generated |
-|MaxZoom | 16 | NodeSize is size of the KD-tree node. Higher means faster indexing but slower search, and vise versa. |
+|NodeSize | 64 | NodeSize is size of the KD-tree node. Higher means faster indexing but slower search, and vise versa. |
+
+Available option functions:
+
+```go
+	WithPointSize(size int) Option 
+	WithTileSize(size int) Option
+	WithinZoom(min, max int) Option
+	WithNodeSize(size int) Option
+
+	// creating new cluster
+	New(points []GeoPoint, opts ...Option) (*Cluster, error)
+```
 
 ## Search point in boundary box
 
@@ -79,7 +93,7 @@ To search all  points inside the box, that are limited by the box, formed by nor
 northWest := simplePoint{71.36718750000001, -83.79204408779539}
 southEast := simplePoint{-71.01562500000001, 83.7539108491127}
 zoom := 2
-var result []ClusterPoint = c.GetClusters(northWest, southEast, zoom)
+var results := c.GetClusters(northWest, southEast, zoom)
 
 ```
 
@@ -98,18 +112,14 @@ OSM and Google maps [uses tiles system](https://developers.google.com/maps/docum
 So you could get all points for the tile with tileX, tileY and zoom:
 
 ```go
-c := NewCluster()
-c.ClusterPoints(geoPoints)
+c := NewCluster(geoPoints)
 tileX := 0
 tileY := 1
 zoom := 4
-result := c.GetTile(tileX, tileY, zoom)
+results := c.GetTile(tileX, tileY, zoom)
 
 ```
 In this case all coordinates are returned in pixels for that tile.
 If you want to return objects with Lat, Long, use `GetTileWithLatLon` method.
 
-
-
 TODO: Benchmarks
-TODO: demo server

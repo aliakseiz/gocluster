@@ -18,6 +18,12 @@ func (cp *Point) Coordinates() (float64, float64) {
 	return cp.X, cp.Y
 }
 
+// IsCluster tells you if this point is cluster or
+// rather regular point
+func (cp *Point) IsCluster(c *Cluster) bool {
+	return cp.ID >= c.clusterIdxSeed
+}
+
 // GeoCoordinates represent position in the Earth
 type GeoCoordinates struct {
 	Lng float64
