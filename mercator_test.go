@@ -22,3 +22,12 @@ func Test_MercatorProjection(t *testing.T) {
 	assert.Equal(t, x, 0.32760606111004165)
 	assert.Equal(t, y, 0.4841770650015434)
 }
+
+func Test_MercatorRversedProjection(t *testing.T) {
+	coords := GeoCoordinates{
+		Lng: -79.044117805,
+		Lat: 43.0877139344,
+	}
+	reversed := ReverseMercatorProjection(MercatorProjection(coords))
+	assert.Equal(t, reversed, coords)
+}

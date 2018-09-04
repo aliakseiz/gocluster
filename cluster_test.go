@@ -16,10 +16,18 @@ func TestNewCluster(t *testing.T) {
 	}
 	c, _ := New([]GeoPoint{})
 	assert.Equal(t, c.MinZoom, 0, "they should be equal")
-	assert.Equal(t, c.MaxZoom, 16, "they should be equal")
+	assert.Equal(t, c.MaxZoom, 21, "they should be equal")
 	assert.Equal(t, c.PointSize, 40, "they should be equal")
 	assert.Equal(t, c.TileSize, 512, "they should be equal")
 	assert.Equal(t, c.NodeSize, 64, "they should be equal")
+}
+
+func TestAllClusters(t *testing.T) {
+	var point GeoPoint = simplePoint{71.36718750000001, -83.79204408779539}
+	c, _ := New([]GeoPoint{point})
+	p := c.AllClusters(21)[0]
+	assert.InDelta(t, p.X, 71.36718750000001, 0.000001)
+	assert.InDelta(t, p.Y, -83.79204408779539, 0.000001)
 }
 
 func TestCluster_GetClusters(t *testing.T) {

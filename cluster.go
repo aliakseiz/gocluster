@@ -40,7 +40,7 @@ type Cluster struct {
 func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	cluster := &Cluster{
 		MinZoom:   0,
-		MaxZoom:   16,
+		MaxZoom:   21,
 		PointSize: 40, // 240
 		TileSize:  512,
 		NodeSize:  64,
