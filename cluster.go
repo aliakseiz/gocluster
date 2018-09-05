@@ -133,6 +133,9 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 			return c.MaxZoom
 		}
 		clusterZoom++
+		if clusterZoom >= c.MaxZoom {
+			return c.MaxZoom
+		}
 		// in case it's more then 1, then return current zoom
 		if len(children) != 1 {
 			break
