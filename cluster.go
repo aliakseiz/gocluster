@@ -55,15 +55,16 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	if cluster.MaxZoom > 21 {
 		cluster.MaxZoom = 21
 	}
+	// cluster.MaxZoom--
 	//adding extra layer for infinite zoom (initial) layers data storage
-	cluster.Indexes = make([]*kdbush.KDBush, cluster.MaxZoom-cluster.MinZoom+2)
+	cluster.Indexes = make([]*kdbush.KDBush, cluster.MaxZoom-cluster.MinZoom+1)
 	cluster.Points = points
 	// get digits number, start from next exponent
 	// if we have 78, all cluster will start from 100...
 	// if we have 986 points, all clusters ids will start from 1000
 	cluster.clusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
 	clusters := translateGeoPointsToPoints(points)
-	for z := cluster.MaxZoom; z >= cluster.MinZoom; z-- {
+	for z := (cluster.MaxZoom - 1); z >= cluster.MinZoom; z-- {
 		//create index from clusters from previous iteration
 		cluster.Indexes[z+1] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
 		//create clusters for level up using just created index
@@ -82,7 +83,8 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // X coordinate of returned object is Longitude and
 // Y coordinate of returned object is Latitude
 func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Point {
-	index := c.Indexes[c.limitZoom(zoom)]
+	zoom = c.limitZoom(zoom)
+	index := c.Indexes[zoom]
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
 	ids := index.Range(nwX, nwY, seX, seY)
@@ -125,6 +127,9 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 // GetClusterExpansionZoom will return how much you need to zoom
 // to get to a next cluster
 func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
+	if clusterID < c.clusterIdxSeed {
+		return c.MaxZoom
+	}
 	clusterZoom := (clusterID % 32) - 1
 	id := clusterID
 	for clusterZoom < int(c.MaxZoom) {
@@ -133,7 +138,7 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 			return c.MaxZoom
 		}
 		clusterZoom++
-		if clusterZoom >= c.MaxZoom {
+		if clusterZoom >= c.MaxZoom+1 {
 			return c.MaxZoom
 		}
 		// in case it's more then 1, then return current zoom
@@ -215,8 +220,8 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 }
 
 func (c *Cluster) limitZoom(zoom int) int {
-	if zoom > c.MaxZoom+1 {
-		zoom = c.MaxZoom + 1
+	if zoom > c.MaxZoom {
+		zoom = c.MaxZoom
 	}
 	if zoom < c.MinZoom {
 		zoom = c.MinZoom
