@@ -57,7 +57,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	}
 	// cluster.MaxZoom--
 	//adding extra layer for infinite zoom (initial) layers data storage
-	cluster.Indexes = make([]*kdbush.KDBush, cluster.MaxZoom-cluster.MinZoom+1)
+	cluster.Indexes = make([]*kdbush.KDBush, cluster.MaxZoom-cluster.MinZoom+2)
 	cluster.Points = points
 	// get digits number, start from next exponent
 	// if we have 78, all cluster will start from 100...
@@ -115,7 +115,7 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 	originTree := c.Indexes[originZoom]
 	originPoint := originTree.Points[originIndex]
 	r := float64(c.PointSize) / float64(c.TileSize*(1<<uint(originZoom)))
-	treeBelow := c.Indexes[originZoom+1]
+	treeBelow := c.Indexes[originZoom+1-c.MinZoom]
 	ids := treeBelow.Within(originPoint, r)
 	children := []*Point{}
 	for _, i := range ids {
