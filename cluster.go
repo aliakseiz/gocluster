@@ -64,14 +64,14 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	// if we have 986 points, all clusters ids will start from 1000
 	cluster.clusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
 	clusters := translateGeoPointsToPoints(points)
-	for z := (cluster.MaxZoom - 1); z >= cluster.MinZoom; z-- {
+	for z := cluster.MaxZoom; z >= cluster.MinZoom; z-- {
 		//create index from clusters from previous iteration
-		cluster.Indexes[z+1] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
+		cluster.Indexes[z+1-cluster.MinZoom] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
 		//create clusters for level up using just created index
 		clusters = cluster.clusterize(clusters, z)
 	}
 	//index topmost points
-	cluster.Indexes[cluster.MinZoom] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
+	cluster.Indexes[0] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
 	return cluster, nil
 }
 
@@ -83,7 +83,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // X coordinate of returned object is Longitude and
 // Y coordinate of returned object is Latitude
 func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Point {
-	zoom = c.limitZoom(zoom)
+	zoom = c.limitZoom(zoom) - c.MinZoom
 	index := c.Indexes[zoom]
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
@@ -132,7 +132,7 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 	}
 	clusterZoom := (clusterID % 32) - 1
 	id := clusterID
-	for clusterZoom < int(c.MaxZoom) {
+	for clusterZoom < c.MaxZoom {
 		children := c.GetClustersPointsInRadius(id)
 		if children == nil { // nil means it is point not cluster
 			return c.MaxZoom
@@ -154,7 +154,7 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 // X coordinate of returned object is Longitude and.
 // Y coordinate of returned object is Latitude.
 func (c *Cluster) AllClusters(zoom int) []Point {
-	index := c.Indexes[c.limitZoom(zoom)]
+	index := c.Indexes[c.limitZoom(zoom)-c.MinZoom]
 	points := index.Points
 	result := make([]Point, len(points))
 	for i := range points {
@@ -183,7 +183,7 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 		// mark this point as visited
 		p.zoom = zoom
 		// find all neighbours
-		tree := c.Indexes[zoom+1]
+		tree := c.Indexes[zoom+1-c.MinZoom]
 		neighbourIds := tree.Within(&kdbush.SimplePoint{X: p.X, Y: p.Y}, r)
 		nPoints := p.NumPoints
 		wx := p.X * float64(nPoints)

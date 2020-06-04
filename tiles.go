@@ -15,7 +15,7 @@ func (c *Cluster) GetTileWithLatLng(x, y, z int) []Point {
 }
 
 func (c *Cluster) getTile(x, y, z int, latlng bool) []Point {
-	index := c.Indexes[c.limitZoom(z)]
+	index := c.Indexes[c.limitZoom(z)-c.MinZoom]
 	z2 := 1 << uint(z)
 	z2f := float64(z2)
 	extent := c.TileSize
