@@ -11,6 +11,7 @@ type Point struct {
 	zoom      int
 	ID        int //Index for pint, Id for cluster
 	NumPoints int
+	Included  []int
 }
 
 // Coordinates to be compatible with interface
@@ -33,6 +34,7 @@ type GeoCoordinates struct {
 // GeoPoint interface returning lat/lng coordinates.
 // All object, that you want to cluster should implement this protocol
 type GeoPoint interface {
+	GetID() int
 	GetCoordinates() GeoCoordinates
 }
 
@@ -46,6 +48,7 @@ func translateGeoPointsToPoints(points []GeoPoint) []*Point {
 		result[i] = &cp
 		cp.NumPoints = 1
 		cp.ID = i
+		cp.Included = []int{p.GetID()}
 	}
 	return result
 }
