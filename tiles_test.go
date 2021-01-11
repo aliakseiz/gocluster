@@ -26,6 +26,9 @@ func TestCluster_GetTile00(t *testing.T) {
 	result := c.GetTile(0, 0, 0)
 	assert.NotEmpty(t, result)
 	expectedPoints := importPoints("./testdata/expect_tile0_0_0.json")
+	for i := range result {
+		result[i].Included = nil
+	}
 	assert.Equal(t, result, expectedPoints)
 }
 

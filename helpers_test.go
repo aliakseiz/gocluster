@@ -8,7 +8,12 @@ import (
 
 ////Helpers
 type simplePoint struct {
+	ID       int64
 	Lon, Lat float64
+}
+
+func (sp simplePoint) GetID() int64 {
+	return sp.ID
 }
 
 func (sp simplePoint) GetCoordinates() GeoCoordinates {
@@ -16,6 +21,7 @@ func (sp simplePoint) GetCoordinates() GeoCoordinates {
 }
 
 type TestPoint struct {
+	ID         int64
 	Type       string
 	Properties struct {
 		//we don't need other data
@@ -25,6 +31,10 @@ type TestPoint struct {
 	Geometry struct {
 		Coordinates []float64
 	}
+}
+
+func (tp *TestPoint) GetID() int64 {
+	return tp.ID
 }
 
 type GeoJSONResultFeature struct {
