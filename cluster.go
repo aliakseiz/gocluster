@@ -83,7 +83,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // X coordinate of returned object is Longitude and
 // Y coordinate of returned object is Latitude
 func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Point {
-	zoom = c.limitZoom(zoom) - c.MinZoom
+	zoom = c.LimitZoom(zoom) - c.MinZoom
 	index := c.Indexes[zoom]
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
@@ -154,7 +154,7 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 // X coordinate of returned object is Longitude and.
 // Y coordinate of returned object is Latitude.
 func (c *Cluster) AllClusters(zoom int) []Point {
-	index := c.Indexes[c.limitZoom(zoom)-c.MinZoom]
+	index := c.Indexes[c.LimitZoom(zoom)-c.MinZoom]
 	points := index.Points
 	result := make([]Point, len(points))
 	for i := range points {
@@ -223,7 +223,7 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 	return result
 }
 
-func (c *Cluster) limitZoom(zoom int) int {
+func (c *Cluster) LimitZoom(zoom int) int {
 	if zoom > c.MaxZoom {
 		zoom = c.MaxZoom
 	}
