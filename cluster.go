@@ -82,12 +82,15 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // return the object for clustered points,
 // X coordinate of returned object is Longitude and
 // Y coordinate of returned object is Latitude
-func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int) []Point {
+func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int) []Point {
 	zoom = c.LimitZoom(zoom) - c.MinZoom
 	index := c.Indexes[zoom]
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
 	ids := index.Range(nwX, nwY, seX, seY)
+	if len(ids) > limit {
+		ids = ids[:limit]
+	}
 	result := make([]Point, len(ids))
 	for i := range ids {
 		p := index.Points[ids[i]].(*Point)
