@@ -156,9 +156,12 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 // AllClusters returns all cluster points, array of Point,  for zoom on the map.
 // X coordinate of returned object is Longitude and.
 // Y coordinate of returned object is Latitude.
-func (c *Cluster) AllClusters(zoom int) []Point {
+func (c *Cluster) AllClusters(zoom int, limit int) []Point {
 	index := c.Indexes[c.LimitZoom(zoom)-c.MinZoom]
 	points := index.Points
+	if len(points) > limit {
+		points = points[:limit]
+	}
 	result := make([]Point, len(points))
 	for i := range points {
 		p := index.Points[i].(*Point)
