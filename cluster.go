@@ -88,7 +88,7 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int
 	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
 	seX, seY := MercatorProjection(southEast.GetCoordinates())
 	ids := index.Range(nwX, nwY, seX, seY)
-	if len(ids) > limit {
+	if (limit > 0) && (len(ids) > limit) {
 		ids = ids[:limit]
 	}
 	result := make([]Point, len(ids))
@@ -159,7 +159,7 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 func (c *Cluster) AllClusters(zoom int, limit int) []Point {
 	index := c.Indexes[c.LimitZoom(zoom)-c.MinZoom]
 	points := index.Points
-	if len(points) > limit {
+	if (limit > 0) && (len(points) > limit) {
 		points = points[:limit]
 	}
 	result := make([]Point, len(points))
