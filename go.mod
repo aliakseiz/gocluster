@@ -1,4 +1,4 @@
-module github.com/secoura/cluster
+module github.com/aliakseiz/gocluster
 
 go 1.14
 
