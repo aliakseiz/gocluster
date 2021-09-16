@@ -1,18 +1,18 @@
 [
   {
-    "X": 86,
+    "X": 85,
     "Y": 118,
     "Zoom": 100,
     "ID": 32001,
-    "NumPoints": 76,
+    "NumPoints": 75,
     "IncludedPoints": null
   },
   {
-    "X": 159,
+    "X": 158,
     "Y": 131,
     "Zoom": 100,
     "ID": 32033,
-    "NumPoints": 24,
+    "NumPoints": 25,
     "IncludedPoints": null
   },
   {
@@ -43,7 +43,7 @@
     "X": 13,
     "Y": 135,
     "Zoom": 0,
-    "ID": 32386,
+    "ID": 32354,
     "NumPoints": 6,
     "IncludedPoints": null
   },
@@ -99,7 +99,7 @@
     "X": 269,
     "Y": 135,
     "Zoom": 0,
-    "ID": 32386,
+    "ID": 32354,
     "NumPoints": 6,
     "IncludedPoints": null
   }

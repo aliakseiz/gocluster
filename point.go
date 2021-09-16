@@ -7,12 +7,11 @@ import (
 // Point struct that implements clustered points
 // could have only one point or set of points.
 type Point struct {
-	X, Y        float64
-	zoom        int
-	ID          int // Index for pint, Id for cluster
-	NumPoints   int
-	Included    []int64
-	Descendants []int64
+	X, Y      float64
+	zoom      int
+	ID        int // Index for pint, Id for cluster
+	NumPoints int
+	Included  []int64
 }
 
 // Coordinates to be compatible with interface.
@@ -50,7 +49,6 @@ func translateGeoPointsToPoints(points []GeoPoint) []*Point {
 		cp.NumPoints = 1
 		cp.ID = i
 		cp.Included = []int64{p.GetID()}
-		cp.Descendants = []int64{p.GetID()}
 	}
 	return result
 }

@@ -192,7 +192,6 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 		tree := c.Indexes[zoom+1-c.MinZoom]
 		neighbourIds := tree.Within(&kdbush.SimplePoint{X: p.X, Y: p.Y}, r)
 		nPoints := p.NumPoints
-		descendants := p.Descendants
 		wx := p.X * float64(nPoints)
 		wy := p.Y * float64(nPoints)
 		var foundNeighbours []*Point
@@ -203,7 +202,6 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 				wx += b.X * float64(b.NumPoints)
 				wy += b.Y * float64(b.NumPoints)
 				nPoints += b.NumPoints
-				descendants = append(descendants, b.Descendants...)
 				b.zoom = zoom // set the zoom to skip in other iterations
 				foundNeighbours = append(foundNeighbours, b)
 			}
@@ -215,7 +213,6 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 			newCluster.X = wx / float64(nPoints)
 			newCluster.Y = wy / float64(nPoints)
 			newCluster.NumPoints = nPoints
-			newCluster.Descendants = descendants
 			newCluster.zoom = InfinityZoomLevel
 			// create ID based on seed + index
 			// this is then shifted to create space for zoom
