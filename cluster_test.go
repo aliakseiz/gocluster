@@ -82,7 +82,6 @@ func TestCluster_AllClusters(t *testing.T) {
 	result := c.AllClusters(2)
 	assert.NotEmpty(t, result)
 	assert.Equal(t, 100, len(result))
-
 }
 
 func ExampleCluster_GetClusters() {

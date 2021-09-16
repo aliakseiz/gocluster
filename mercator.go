@@ -2,7 +2,7 @@ package cluster
 
 import "math"
 
-// MercatorProjection will convert lat,lng into spherical mercator range which is 0 to 1
+// MercatorProjection will convert lat,lng into spherical mercator range which is 0 to 1.
 func MercatorProjection(coordinates GeoCoordinates) (float64, float64) {
 	x := coordinates.Lng/360.0 + 0.5
 	sin := math.Sin(coordinates.Lat * math.Pi / 180.0)
@@ -16,7 +16,7 @@ func MercatorProjection(coordinates GeoCoordinates) (float64, float64) {
 	return x, y
 }
 
-// ReverseMercatorProjection converts spherical mercator range to lat,lng
+// ReverseMercatorProjection converts spherical mercator range to lat,lng.
 func ReverseMercatorProjection(x, y float64) GeoCoordinates {
 	result := GeoCoordinates{}
 	result.Lng = (x - 0.5) * 360

@@ -3,13 +3,13 @@ package cluster
 import "github.com/electrious-go/kdbush"
 
 // GetTile return points for  Tile with coordinates x and y and for zoom z
-// return objects with pixel coordinates
+// return objects with pixel coordinates.
 func (c *Cluster) GetTile(x, y, z int) []Point {
 	return c.getTile(x, y, z, false)
 }
 
 // GetTileWithLatLng return points for  Tile with coordinates x and y and for zoom z
-// return objects with LatLng coordinates
+// return objects with LatLng coordinates.
 func (c *Cluster) GetTileWithLatLng(x, y, z int) []Point {
 	return c.getTile(x, y, z, true)
 }
@@ -66,13 +66,13 @@ func (c *Cluster) getTile(x, y, z int, latlng bool) []Point {
 	return result
 }
 
-// calc Point mercator projection regarding tile
+// calc Point mercator projection regarding tile.
 func (c *Cluster) pointIDToMercatorPoint(ids []int, points []kdbush.Point, x, y, z2 float64) []Point {
 	var result []Point
 	for i := range ids {
 		p := points[ids[i]].(*Point)
 		cp := *p
-		//translate our coordinate system to mercator
+		// translate our coordinate system to mercator
 		cp.X = float64(round(float64(c.TileSize) * (p.X*z2 - x)))
 		cp.Y = float64(round(float64(c.TileSize) * (p.Y*z2 - y)))
 		cp.zoom = 0

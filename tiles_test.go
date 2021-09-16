@@ -32,7 +32,7 @@ func TestCluster_GetTile00(t *testing.T) {
 	assert.Equal(t, result, expectedPoints)
 }
 
-//validate original result from JS library
+// validate original result from JS library.
 func TestCluster_GetTileDefault(t *testing.T) {
 	points := importData("./testdata/places.json")
 	if len(points) == 0 {
@@ -74,5 +74,4 @@ func ExampleCluster_GetTile() {
 	result := c.GetTile(0, 0, 4)
 	fmt.Printf("%+v", result)
 	// Output: [{X:-2418 Y:165 zoom:0 ID:62 NumPoints:1} {X:-3350 Y:253 zoom:0 ID:22 NumPoints:1}]
-
 }

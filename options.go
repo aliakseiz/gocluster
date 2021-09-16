@@ -1,6 +1,6 @@
 package cluster
 
-// Option allows to modify cluster properties or cluster itself
+// Option allows to modify cluster properties or cluster itself.
 type Option func(*Cluster) error
 
 // cluster := &Cluster{
@@ -13,7 +13,7 @@ type Option func(*Cluster) error
 // 	Extent:    512,
 // }
 
-// WithPointSize will set point size
+// WithPointSize will set point size.
 func WithPointSize(size int) Option {
 	return func(c *Cluster) error {
 		c.PointSize = size
@@ -22,7 +22,7 @@ func WithPointSize(size int) Option {
 }
 
 // WithTileSize will set tile size.
-// TileSize = 512 (GMaps and OSM default)
+// TileSize = 512 (GMaps and OSM default).
 func WithTileSize(size int) Option {
 	return func(c *Cluster) error {
 		c.TileSize = size
@@ -30,7 +30,7 @@ func WithTileSize(size int) Option {
 	}
 }
 
-// WithinZoom will set min/max zoom
+// WithinZoom will set min/max zoom.
 func WithinZoom(min, max int) Option {
 	return func(c *Cluster) error {
 		c.MinZoom = min

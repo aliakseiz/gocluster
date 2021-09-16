@@ -15,7 +15,7 @@ import (
 type testPoint struct {
 	Type       string
 	Properties struct {
-		//we don't need other data
+		// we don't need other data
 		Name       string
 		PointCount int `json:"point_count"`
 	}

@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	// InfinityZoomLevel indicate impossible large zoom level (Cluster's max is 21)
+	// InfinityZoomLevel indicate impossible large zoom level (Cluster's max is 21).
 	InfinityZoomLevel = 100
 )
 
 // Cluster struct get a list or stream of geo objects
 // and produce all levels of clusters
-// Zoom range is limited by 0 to 21, and MinZoom could not be larger, then MaxZoom
+// Zoom range is limited by 0 to 21, and MinZoom could not be larger, then MaxZoom.
 type Cluster struct {
 	// MinZoom minimum  zoom level to generate clusters
 	MinZoom int
@@ -51,12 +51,12 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 			return nil, err
 		}
 	}
-	//limit max Zoom
+	// limit max Zoom
 	if cluster.MaxZoom > 21 {
 		cluster.MaxZoom = 21
 	}
 	// cluster.MaxZoom--
-	//adding extra layer for infinite zoom (initial) layers data storage
+	// adding extra layer for infinite zoom (initial) layers data storage
 	cluster.Indexes = make([]*kdbush.KDBush, cluster.MaxZoom-cluster.MinZoom+2)
 	cluster.Points = points
 	// get digits number, start from next exponent
@@ -65,12 +65,12 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	cluster.clusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
 	clusters := translateGeoPointsToPoints(points)
 	for z := cluster.MaxZoom; z >= cluster.MinZoom; z-- {
-		//create index from clusters from previous iteration
+		// create index from clusters from previous iteration
 		cluster.Indexes[z+1-cluster.MinZoom] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
-		//create clusters for level up using just created index
+		// create clusters for level up using just created index
 		clusters = cluster.clusterize(clusters, z)
 	}
-	//index topmost points
+	// index topmost points
 	cluster.Indexes[0] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
 	return cluster, nil
 }
@@ -81,7 +81,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // southEast is right bottom point.
 // return the object for clustered points,
 // X coordinate of returned object is Longitude and
-// Y coordinate of returned object is Latitude
+// Y coordinate of returned object is Latitude.
 func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int) []Point {
 	zoom = c.LimitZoom(zoom) - c.MinZoom
 	index := c.Indexes[zoom]
@@ -105,7 +105,7 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int
 }
 
 // GetClustersPointsInRadius will return child points for specific cluster
-// this is done with kdbush.Within method allowing fast search
+// this is done with kdbush.Within method allowing fast search.
 func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 	// if clusterID is smaller than initial seed
 	// it means that it is original point from which
@@ -128,7 +128,7 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 }
 
 // GetClusterExpansionZoom will return how much you need to zoom
-// to get to a next cluster
+// to get to a next cluster.
 func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 	if clusterID < c.clusterIdxSeed {
 		return c.MaxZoom
@@ -174,7 +174,7 @@ func (c *Cluster) AllClusters(zoom int, limit int) []Point {
 	return result
 }
 
-// clusterize points for zoom level
+// clusterize points for zoom level.
 func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 	var result []*Point
 	r := float64(c.PointSize) / float64(c.TileSize*(1<<uint(zoom)))
@@ -204,7 +204,7 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 				wy += b.Y * float64(b.NumPoints)
 				nPoints += b.NumPoints
 				descendants = append(descendants, b.Descendants...)
-				b.zoom = zoom //set the zoom to skip in other iterations
+				b.zoom = zoom // set the zoom to skip in other iterations
 				foundNeighbours = append(foundNeighbours, b)
 			}
 		}

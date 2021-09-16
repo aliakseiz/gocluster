@@ -11,7 +11,7 @@ import (
 type testPoint struct {
 	Type       string
 	Properties struct {
-		//we don't need other data
+		// we don't need other data
 		Name string
 	}
 	Geometry struct {
@@ -27,7 +27,7 @@ func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
 }
 
 func importData(filename string) []*testPoint {
-	var points = struct {
+	points := struct {
 		Type     string
 		Features []*testPoint
 	}{}

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 )
 
-////Helpers
+////Helpers.
 type simplePoint struct {
 	ID       int64
 	Lon, Lat float64
@@ -24,7 +24,7 @@ type TestPoint struct {
 	ID         int64
 	Type       string
 	Properties struct {
-		//we don't need other data
+		// we don't need other data
 		Name       string
 		PointCount int `json:"point_count"`
 	}
@@ -52,7 +52,7 @@ func (tp *TestPoint) GetCoordinates() GeoCoordinates {
 }
 
 func importData(filename string) []*TestPoint {
-	var points = struct {
+	points := struct {
 		Type     string
 		Features []*TestPoint
 	}{}
@@ -62,7 +62,7 @@ func importData(filename string) []*TestPoint {
 		return nil
 	}
 	json.Unmarshal(raw, &points)
-	//fmt.Printf("Get data: %+v\n",points)
+	// fmt.Printf("Get data: %+v\n",points)
 	return points.Features
 }
 
@@ -75,11 +75,10 @@ func importPoints(filename string) []Point {
 	}
 	json.Unmarshal(raw, &result)
 	return result
-
 }
 
 func importGeoJSONResultFeature(filename string) []GeoJSONResultFeature {
-	var points = struct {
+	points := struct {
 		Features []GeoJSONResultFeature
 	}{}
 	raw, err := ioutil.ReadFile(filename)

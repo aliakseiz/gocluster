@@ -8,8 +8,8 @@ import (
 
 func Test_MercatorProjection(t *testing.T) {
 	coords := GeoCoordinates{
-		Lng: -79.04411780507252, //0.2804330060970208
-		Lat: 43.08771393436908,  //0.36711590445377973
+		Lng: -79.04411780507252, // 0.2804330060970208
+		Lat: 43.08771393436908,  // 0.36711590445377973
 	}
 	x, y := MercatorProjection(coords)
 	assert.Equal(t, x, 0.2804330060970208)
