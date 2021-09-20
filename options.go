@@ -1,6 +1,6 @@
 package cluster
 
-// Option allows to modify cluster properties or cluster itself.
+// Option allows modifying cluster properties or cluster itself.
 type Option func(*Cluster) error
 
 // cluster := &Cluster{
@@ -30,7 +30,7 @@ func WithTileSize(size int) Option {
 	}
 }
 
-// WithinZoom will set min/max zoom.
+// WithinZoom will set min/max Zoom.
 func WithinZoom(min, max int) Option {
 	return func(c *Cluster) error {
 		c.MinZoom = min

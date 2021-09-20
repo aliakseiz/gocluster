@@ -2,7 +2,7 @@
   {
     "X": 85,
     "Y": 118,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32001,
     "NumPoints": 75,
     "IncludedPoints": null
@@ -10,7 +10,7 @@
   {
     "X": 158,
     "Y": 131,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32033,
     "NumPoints": 25,
     "IncludedPoints": null
@@ -26,7 +26,7 @@
   {
     "X": 227,
     "Y": 150,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32097,
     "NumPoints": 20,
     "IncludedPoints": null
@@ -34,7 +34,7 @@
   {
     "X": 51,
     "Y": 37,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32129,
     "NumPoints": 5,
     "IncludedPoints": null
@@ -50,7 +50,7 @@
   {
     "X": 243,
     "Y": 106,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32193,
     "NumPoints": 26,
     "IncludedPoints": null
@@ -66,7 +66,7 @@
   {
     "X": -29,
     "Y": 150,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32097,
     "NumPoints": 20,
     "IncludedPoints": null
@@ -74,7 +74,7 @@
   {
     "X": -13,
     "Y": 106,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32193,
     "NumPoints": 26,
     "IncludedPoints": null
@@ -90,7 +90,7 @@
   {
     "X": 307,
     "Y": 37,
-    "Zoom": 100,
+    "Zoom": 0,
     "ID": 32129,
     "NumPoints": 5,
     "IncludedPoints": null

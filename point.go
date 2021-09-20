@@ -8,7 +8,7 @@ import (
 // could have only one point or set of points.
 type Point struct {
 	X, Y      float64
-	zoom      int
+	Zoom      int
 	ID        int // Index for pint, Id for cluster
 	NumPoints int
 	Included  []int64
@@ -32,31 +32,35 @@ type GeoCoordinates struct {
 }
 
 // GeoPoint interface returning lat/lng coordinates.
-// All object, that you want to cluster should implement this protocol.
+// All objects, that you want to cluster should implement this interface.
 type GeoPoint interface {
 	GetID() int64
 	GetCoordinates() GeoCoordinates
 }
 
-// translate geopoints to Points witrh projection coordinates.
+// translate geopoints to Points with projection coordinates.
 func translateGeoPointsToPoints(points []GeoPoint) []*Point {
 	result := make([]*Point, len(points))
+
 	for i, p := range points {
 		cp := Point{}
-		cp.zoom = InfinityZoomLevel
+		cp.Zoom = InfinityZoomLevel
 		cp.X, cp.Y = MercatorProjection(p.GetCoordinates())
 		result[i] = &cp
 		cp.NumPoints = 1
 		cp.ID = i
 		cp.Included = []int64{p.GetID()}
 	}
+
 	return result
 }
 
 func clustersToPoints(points []*Point) []kdbush.Point {
 	result := make([]kdbush.Point, len(points))
+
 	for i, v := range points {
 		result[i] = v
 	}
+
 	return result
 }
