@@ -30,7 +30,7 @@ func WithTileSize(size int) Option {
 	}
 }
 
-// WithinZoom will set min/max Zoom.
+// WithinZoom will set min/max zoom.
 func WithinZoom(min, max int) Option {
 	return func(c *Cluster) error {
 		c.MinZoom = min
