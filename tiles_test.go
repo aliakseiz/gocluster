@@ -2,9 +2,9 @@ package cluster_test
 
 import (
 	"fmt"
-	cluster "github.com/aliakseiz/gocluster"
 	"testing"
 
+	cluster "github.com/aliakseiz/gocluster"
 	"github.com/stretchr/testify/assert"
 )
 

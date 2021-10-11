@@ -1,10 +1,10 @@
 # Cluster
 
 [![CircleCI](https://circleci.com/gh/electrious-go/cluster/tree/master.svg?style=svg)](https://circleci.com/gh/electrious-go/cluster/tree/master)
-![Go Report](https://goreportcard.com/badge/github.com/aliakseiz/go-cluster)
-[![Go Doc](https://godoc.org/github.com/aliakseiz/go-cluster?status.svg)](http://godoc.org/github.com/aliakseiz/go-cluster)
+![Go Report](https://goreportcard.com/badge/github.com/aliakseiz/gocluster)
+[![Go Doc](https://godoc.org/github.com/aliakseiz/gocluster?status.svg)](http://godoc.org/github.com/aliakseiz/gocluster)
 
-`go-cluster` is a very fast Golang library for geospatial point clustering.
+`gocluster` is a very fast Golang library for geospatial point clustering.
 
 The origin of this library is in [GoCluster](https://github.com/MadAppGang/gocluster).
 

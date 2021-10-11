@@ -3,8 +3,9 @@ package cluster_test
 import (
 	"encoding/json"
 	"fmt"
-	cluster "github.com/aliakseiz/gocluster"
 	"io/ioutil"
+
+	cluster "github.com/aliakseiz/gocluster"
 )
 
 type simplePoint struct {

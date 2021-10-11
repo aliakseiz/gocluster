@@ -2,9 +2,9 @@ package cluster_test
 
 import (
 	"fmt"
-	cluster "github.com/aliakseiz/gocluster"
 	"testing"
 
+	cluster "github.com/aliakseiz/gocluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -176,7 +176,7 @@ func TestCluster_AllClusters(t *testing.T) {
 
 func ExampleCluster_GetClusters() {
 	points := importData("./testdata/places.json")
-	//var points []*TestPoint
+	// var points []*TestPoint
 
 	geoPoints := make([]cluster.GeoPoint, len(points))
 
