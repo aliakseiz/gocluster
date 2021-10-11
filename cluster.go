@@ -219,6 +219,7 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 			// this is then shifted to create space for zoom
 			// this is useful when you need extract zoom from ID
 			newCluster.ID = ((c.clusterIdxSeed + index) << 5) + zoom + 1
+			newCluster.Included = p.Included
 
 			for _, neighbour := range foundNeighbours {
 				newCluster.Included = append(newCluster.Included, neighbour.Included...)

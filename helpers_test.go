@@ -1,12 +1,12 @@
-package cluster
+package cluster_test
 
 import (
 	"encoding/json"
 	"fmt"
+	cluster "github.com/aliakseiz/gocluster"
 	"io/ioutil"
 )
 
-////Helpers.
 type simplePoint struct {
 	ID       int64
 	Lon, Lat float64
@@ -16,38 +16,42 @@ func (sp simplePoint) GetID() int64 {
 	return sp.ID
 }
 
-func (sp simplePoint) GetCoordinates() GeoCoordinates {
-	return GeoCoordinates{sp.Lon, sp.Lat}
+func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
+	return cluster.GeoCoordinates{Lng: sp.Lon, Lat: sp.Lat}
 }
 
+// TestPoint structure to import GeoJSON test data.
 type TestPoint struct {
 	ID         int64
 	Type       string
-	Properties struct {
-		// we don't need other data
-		Name       string
-		PointCount int `json:"point_count"`
-	}
-	Geometry struct {
-		Coordinates []float64
-	}
+	Properties properties
+	Geometry   geometry
+}
+
+type properties struct {
+	Name       string
+	PointCount int `json:"point_count"`
+}
+
+type geometry struct {
+	Coordinates []float64
 }
 
 func (tp *TestPoint) GetID() int64 {
 	return tp.ID
 }
 
+func (tp *TestPoint) GetCoordinates() cluster.GeoCoordinates {
+	return cluster.GeoCoordinates{
+		Lng: tp.Geometry.Coordinates[0],
+		Lat: tp.Geometry.Coordinates[1],
+	}
+}
+
 type GeoJSONResultFeature struct {
 	Geometry [][]float64
 	Tags     struct {
 		PointCount int `json:"point_count"`
-	}
-}
-
-func (tp *TestPoint) GetCoordinates() GeoCoordinates {
-	return GeoCoordinates{
-		Lng: tp.Geometry.Coordinates[0],
-		Lat: tp.Geometry.Coordinates[1],
 	}
 }
 
@@ -59,21 +63,36 @@ func importData(filename string) []*TestPoint {
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
+
 		return nil
 	}
-	json.Unmarshal(raw, &points)
-	// fmt.Printf("Get data: %+v\n",points)
+	err = json.Unmarshal(raw, &points)
+	if err != nil {
+		fmt.Println(err.Error())
+
+		return nil
+	}
+
 	return points.Features
 }
 
-func importPoints(filename string) []Point {
-	var result []Point
+func importPoints(filename string) []cluster.Point {
+	var result []cluster.Point
+
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
+
 		return nil
 	}
-	json.Unmarshal(raw, &result)
+
+	err = json.Unmarshal(raw, &result)
+	if err != nil {
+		fmt.Println(err.Error())
+
+		return nil
+	}
+
 	return result
 }
 
@@ -81,11 +100,30 @@ func importGeoJSONResultFeature(filename string) []GeoJSONResultFeature {
 	points := struct {
 		Features []GeoJSONResultFeature
 	}{}
+
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
+
 		return nil
 	}
-	json.Unmarshal(raw, &points)
+
+	err = json.Unmarshal(raw, &points)
+	if err != nil {
+		fmt.Println(err.Error())
+
+		return nil
+	}
+
 	return points.Features
+}
+
+const epsilon = 0.0000000001
+
+func floatEquals(a, b float64) bool {
+	if (a-b) < epsilon && (b-a) < epsilon {
+		return true
+	}
+
+	return false
 }

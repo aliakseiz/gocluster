@@ -14,13 +14,25 @@ type Point struct {
 	Included  []int64
 }
 
+// GetID to be compatible with interface.
+func (cp *Point) GetID() int64 {
+	return int64(cp.ID)
+}
+
 // Coordinates to be compatible with interface.
 func (cp *Point) Coordinates() (float64, float64) {
 	return cp.X, cp.Y
 }
 
-// IsCluster tells you if this point is cluster or
-// rather regular point.
+// GetCoordinates to be compatible with interface.
+func (cp *Point) GetCoordinates() GeoCoordinates {
+	return GeoCoordinates{
+		Lng: cp.X,
+		Lat: cp.Y,
+	}
+}
+
+// IsCluster tells you if this point is cluster or rather regular point.
 func (cp *Point) IsCluster(c *Cluster) bool {
 	return cp.ID >= c.clusterIdxSeed
 }

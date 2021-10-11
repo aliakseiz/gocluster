@@ -1,6 +1,6 @@
 module github.com/aliakseiz/gocluster
 
-go 1.14
+go 1.16
 
 require (
 	github.com/electrious-go/cluster v0.0.2
