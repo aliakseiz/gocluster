@@ -1,7 +1,5 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/electrious-go/cluster v0.0.2 h1:uVA1W3w7KUzSoUr+g1WiM05gsoSylWw9UdCSDliObrQ=
-github.com/electrious-go/cluster v0.0.2/go.mod h1:mrE2SOcOPSHFle4ufXj/wCOqGVa7A6UaQM/KgocXBaU=
 github.com/electrious-go/kdbush v0.0.0-20180903131831-3bb354b8f7c8 h1:9NZqSQ8hmIbIad3nBwnz03measrEHi1rQ3CWqy0Gh7s=
 github.com/electrious-go/kdbush v0.0.0-20180903131831-3bb354b8f7c8/go.mod h1:Jg3epIJ2mxlOvcZELfmM8N5UWooMPUqmrlQitcuCfH4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

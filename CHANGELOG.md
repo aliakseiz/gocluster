@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `gci`, `gofumpt` and `godot` linters applied
 - Module name to `github.com/aliakseiz/gocluster`
 - Moved tests to `*_test` packages
+- Synchronized the implementation with parent [mapbox/supercluster](https://github.com/mapbox/supercluster/blob/main/index.js)
 
 ### Fixed
 - Failing tests
 - Incorrect IDs in `Point.Included` field for some clusters 
 - Numerous typos in comments
+- Clustering in some edge cases, i.e. view covers western and eastern hemispheres
 
 ### Deprecated
 

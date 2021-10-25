@@ -6,30 +6,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/electrious-go/cluster"
-	"github.com/electrious-go/cluster/examples/googlemaps/spherand"
-	_ "github.com/electrious-go/cluster/examples/googlemaps/static"
+	"github.com/aliakseiz/gocluster"
+	"github.com/aliakseiz/gocluster/examples/googlemaps/spherand"
+	_ "github.com/aliakseiz/gocluster/examples/googlemaps/static"
 	"github.com/rakyll/statik/fs"
 )
-
-type testPoint struct {
-	Type       string
-	Properties struct {
-		// we don't need other data
-		Name       string
-		PointCount int `json:"point_count"`
-	}
-	Geometry struct {
-		Coordinates []float64
-	}
-}
-
-func (tp testPoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{
-		Lng: tp.Geometry.Coordinates[0],
-		Lat: tp.Geometry.Coordinates[1],
-	}
-}
 
 type latlng struct {
 	Lat float64 `json:"lat"`
@@ -38,6 +19,10 @@ type latlng struct {
 
 func (tp latlng) GetCoordinates() cluster.GeoCoordinates {
 	return cluster.GeoCoordinates{Lng: tp.Lng, Lat: tp.Lat}
+}
+
+func (tp latlng) GetID() int64 {
+	return 0
 }
 
 type boundingBox struct {
@@ -80,7 +65,7 @@ func clustersEndpoint(rw http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	points := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom)
+	points := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom, -1)
 	data, err := json.Marshal(points)
 	if err != nil {
 		panic(err)

@@ -77,16 +77,42 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 
 // GetClusters returns the array of clusters for zoom level.
 // The northWest and southEast points are boundary points of square, that should be returned.
-// northWest is left topmost point.
-// southEast is right bottom point.
-// return the object for clustered points,
-// X coordinate of returned object is Longitude and
-// Y coordinate of returned object is Latitude.
+// northWest is left topmost point, southEast is right bottom point.
+// returns the array of clustered points,
+// X coordinate of returned object is Longitude and Y coordinate of returned object is Latitude.
 func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int) []Point {
+	// Original mapbox/supercluster library code has the following expression to calculate min and max longitudes:
+	// let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
+	// Mozilla developer guide suggests such construction to obtain a modulo
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder:
+	// > To obtain a modulo in JavaScript, in place of a % n, use ((a % n ) + n ) % n.
+	minLng := math.Mod(math.Mod(southEast.GetCoordinates().Lng+180, 360)+360, 360) - 180
+	minLat := math.Max(-90, math.Min(90, southEast.GetCoordinates().Lat))
+
+	var maxLng float64
+
+	if northWest.GetCoordinates().Lng != 180 {
+		maxLng = math.Mod(math.Mod(northWest.GetCoordinates().Lng+180, 360)+360, 360) - 180
+	} else {
+		maxLng = 180
+	}
+
+	maxLat := math.Max(-90, math.Min(90, northWest.GetCoordinates().Lat))
+
+	if northWest.GetCoordinates().Lng-southEast.GetCoordinates().Lng >= 360 {
+		minLng = -180
+		maxLng = 180
+	} else if minLng > maxLng {
+		easternHem := c.GetClusters(&Point{X: 180, Y: maxLat}, &Point{X: minLng, Y: minLat}, zoom, limit)
+		westernHem := c.GetClusters(&Point{X: maxLng, Y: maxLat}, &Point{X: -180, Y: minLat}, zoom, limit)
+
+		return append(easternHem, westernHem...)
+	}
+
 	zoom = c.LimitZoom(zoom) - c.MinZoom
 	index := c.Indexes[zoom]
-	nwX, nwY := MercatorProjection(northWest.GetCoordinates())
-	seX, seY := MercatorProjection(southEast.GetCoordinates())
+	nwX, nwY := MercatorProjection(GeoCoordinates{Lng: minLng, Lat: maxLat})
+	seX, seY := MercatorProjection(GeoCoordinates{Lng: maxLng, Lat: minLat})
 	ids := index.Range(nwX, nwY, seX, seY)
 	if (limit > 0) && (len(ids) > limit) {
 		ids = ids[:limit]

@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/electrious-go/cluster"
+	"github.com/aliakseiz/gocluster"
 )
 
 type testPoint struct {
 	Type       string
 	Properties struct {
-		// we don't need other data
 		Name string
 	}
 	Geometry struct {
@@ -24,6 +23,10 @@ func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
 		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}
+}
+
+func (tp *testPoint) GetID() int64 {
+	return 0
 }
 
 func importData(filename string) []*testPoint {
@@ -48,6 +51,10 @@ func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
 	return cluster.GeoCoordinates{Lng: sp.Lng, Lat: sp.Lat}
 }
 
+func (sp simplePoint) GetID() int64 {
+	return 0
+}
+
 func main() {
 	points := importData("../../testdata/places.json")
 	geoPoints := make([]cluster.GeoPoint, len(points))
@@ -60,7 +67,7 @@ func main() {
 		cluster.WithTileSize(256))
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
-	result := c.GetClusters(northWest, southEast, 0)
+	result := c.GetClusters(northWest, southEast, 0, -1)
 	fmt.Printf("Getting points: %+v\n length %v \n", result, len(result))
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Println(string(resultJSON))
