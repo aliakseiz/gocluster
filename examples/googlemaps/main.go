@@ -17,8 +17,8 @@ type latlng struct {
 	Lng float64 `json:"lng"`
 }
 
-func (tp latlng) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{Lng: tp.Lng, Lat: tp.Lat}
+func (tp latlng) GetCoordinates() *cluster.GeoCoordinates {
+	return &cluster.GeoCoordinates{Lng: tp.Lng, Lat: tp.Lat}
 }
 
 func (tp latlng) GetID() int64 {

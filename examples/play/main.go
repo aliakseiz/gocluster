@@ -18,8 +18,12 @@ type testPoint struct {
 	}
 }
 
-func (tp *testPoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{
+func (tp *testPoint) GetCoordinates() *cluster.GeoCoordinates {
+	if tp.Geometry.Coordinates == nil {
+		return nil
+	}
+
+	return &cluster.GeoCoordinates{
 		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}
@@ -47,8 +51,8 @@ type simplePoint struct {
 	Lng, Lat float64
 }
 
-func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{Lng: sp.Lng, Lat: sp.Lat}
+func (sp simplePoint) GetCoordinates() *cluster.GeoCoordinates {
+	return &cluster.GeoCoordinates{Lng: sp.Lng, Lat: sp.Lat}
 }
 
 func (sp simplePoint) GetID() int64 {

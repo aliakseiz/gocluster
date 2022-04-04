@@ -53,7 +53,7 @@ func TestCluster_GetClusters(t *testing.T) {
 	assert.NotEmpty(t, result)
 
 	expectedPoints := importData("./testdata/cluster.json")
-	assert.Equal(t, len(expectedPoints), len(result))
+	require.Equal(t, len(expectedPoints), len(result))
 
 	for i := range result {
 		rp := result[i]
@@ -66,6 +66,40 @@ func TestCluster_GetClusters(t *testing.T) {
 		}
 		// Included field is tested separately
 	}
+}
+
+func TestCluster_CrossingNotCrossing(t *testing.T) {
+	points := []*TestPoint{
+		{ID: 1, Geometry: geometry{[]float64{-178.989, 0}}},
+		{ID: 2, Geometry: geometry{[]float64{-178.990, 0}}},
+		{ID: 3, Geometry: geometry{[]float64{-178.9991, 0}}},
+		{ID: 4, Geometry: geometry{[]float64{-178.992, 0}}},
+	}
+
+	geoPoints := make([]cluster.GeoPoint, len(points))
+
+	for i := range points {
+		geoPoints[i] = points[i]
+	}
+
+	c, _ := cluster.New(geoPoints,
+		cluster.WithinZoom(0, 17),
+		cluster.WithPointSize(40),
+		cluster.WithTileSize(512),
+		cluster.WithNodeSize(64))
+	southEast := simplePoint{-1, -177, -10}
+	northWest := simplePoint{-1, -179, 10}
+
+	nonCrossing := c.GetClusters(northWest, southEast, 1, -1)
+	assert.NotEmpty(t, nonCrossing)
+
+	southEast = simplePoint{-1, -177, -10}
+	northWest = simplePoint{-1, 179, 10}
+
+	crossing := c.GetClusters(northWest, southEast, 1, -1)
+	assert.NotEmpty(t, crossing)
+
+	assert.EqualValues(t, nonCrossing, crossing)
 }
 
 func TestCluster_GetClusters_Included(t *testing.T) {

@@ -17,8 +17,8 @@ func (sp simplePoint) GetID() int64 {
 	return sp.ID
 }
 
-func (sp simplePoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{Lng: sp.Lon, Lat: sp.Lat}
+func (sp simplePoint) GetCoordinates() *cluster.GeoCoordinates {
+	return &cluster.GeoCoordinates{Lng: sp.Lon, Lat: sp.Lat}
 }
 
 // TestPoint structure to import GeoJSON test data.
@@ -42,8 +42,12 @@ func (tp *TestPoint) GetID() int64 {
 	return tp.ID
 }
 
-func (tp *TestPoint) GetCoordinates() cluster.GeoCoordinates {
-	return cluster.GeoCoordinates{
+func (tp *TestPoint) GetCoordinates() *cluster.GeoCoordinates {
+	if tp.Geometry.Coordinates == nil {
+		return nil
+	}
+
+	return &cluster.GeoCoordinates{
 		Lng: tp.Geometry.Coordinates[0],
 		Lat: tp.Geometry.Coordinates[1],
 	}

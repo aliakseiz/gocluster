@@ -25,8 +25,8 @@ func (cp *Point) Coordinates() (float64, float64) {
 }
 
 // GetCoordinates to be compatible with interface.
-func (cp *Point) GetCoordinates() GeoCoordinates {
-	return GeoCoordinates{
+func (cp *Point) GetCoordinates() *GeoCoordinates {
+	return &GeoCoordinates{
 		Lng: cp.X,
 		Lat: cp.Y,
 	}
@@ -47,17 +47,22 @@ type GeoCoordinates struct {
 // All objects, that you want to cluster should implement this interface.
 type GeoPoint interface {
 	GetID() int64
-	GetCoordinates() GeoCoordinates
+	GetCoordinates() *GeoCoordinates
 }
 
 // translate geopoints to Points with projection coordinates.
 func translateGeoPointsToPoints(points []GeoPoint) []*Point {
-	result := make([]*Point, len(points))
+	result := make([]*Point, 0, len(points))
 	for i, p := range points {
+		geoPoint := p.GetCoordinates()
+		if geoPoint == nil { // Skip points without coordinates
+			continue
+		}
+
 		cp := Point{}
 		cp.zoom = InfinityZoomLevel
-		cp.X, cp.Y = MercatorProjection(p.GetCoordinates())
-		result[i] = &cp
+		cp.X, cp.Y = MercatorProjection(*geoPoint) // nil check is above
+		result = append(result, &cp)
 		cp.NumPoints = 1
 		cp.ID = i
 		cp.Included = []int64{p.GetID()}

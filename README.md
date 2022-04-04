@@ -4,28 +4,23 @@
 [![Go Report](https://goreportcard.com/badge/github.com/aliakseiz/gocluster)](https://goreportcard.com/report/github.com/aliakseiz/gocluster)
 [![Go Doc](https://godoc.org/github.com/aliakseiz/gocluster?status.svg)](http://godoc.org/github.com/aliakseiz/gocluster)
 
-`gocluster` is a very fast Golang library for geospatial point clustering.
+`gocluster` is a very fast Golang library for geospatial point clustering. Benchmarks available below.
 
-The origin of this library is in [GoCluster](https://github.com/MadAppGang/gocluster).
+This is a fork of [GoCluster](https://github.com/MadAppGang/gocluster). Which is basically a port of Mapbox [supercluster](https://github.com/mapbox/supercluster/). 
 
-This fork has few additional features.
-
-	- Method to obtain expansion zoom
-	- Google maps example
+Additional features comparing to the origin:
+    
+    - Correct grouping when the view covers both hemispheres
+	- Method to obtain a cluster expansion zoom
 	- Refactored implementation
     - Improved test coverage
+	- Google maps example
 
 ![clusters2](https://cloud.githubusercontent.com/assets/25395/11857351/43407b46-a40c-11e5-8662-e99ab1cd2cb7.gif)
 
-The cluster uses hierarchical greedy clustering approach. The same approach used by Dave Leaver in his
-Leaflet.markercluster plugin.
+The cluster uses hierarchical greedy clustering approach.
 
-So this approach is extremely fast, the only drawback is that all clustered points are stored in memory.
-
-This library is deeply inspired by MapBox's superclaster JS library and blog
-post: https://www.mapbox.com/blog/supercluster/
-
-Easy to use:
+Usage example:
 
 ```go
 package main
@@ -65,7 +60,7 @@ this index.
 
 ## Init cluster index
 
-To init index, you need to prepare your data. All your points should implement `GeoPoint` interface:
+To init the index, points should be prepared first. All points should implement `GeoPoint` interface:
 
 ```go
 type GeoPoint interface {
@@ -102,8 +97,8 @@ New(points []GeoPoint, opts ...Option) (*Cluster, error)
 
 ## Search point in boundary box
 
-To search all points inside the box, that are limited by the box, formed by north-west point and east-south points. You
-need to provide Z index as well.
+To search all points inside the box, that are limited by the box, formed by north-west point and east-south points. 
+Z index should be provided as well.
 
 ```go
 
@@ -124,9 +119,8 @@ Returns the array of 'ClusterPoint' for zoom level. Each point has the following
 
 ## Search points for tile
 
-OSM and Google
-maps [uses tiles system](https://developers.google.com/maps/documentation/javascript/maptypes#TileCoordinates) to
-optimize map loading. So you could get all points for the tile with tileX, tileY and zoom:
+OSM and Google maps [uses tiles system](https://developers.google.com/maps/documentation/javascript/maptypes#TileCoordinates) to
+optimize map loading. So it is possible to get all points for the tile with tileX, tileY and zoom:
 
 ```go
 c := NewCluster(geoPoints)
@@ -137,9 +131,12 @@ zoom := 4
 results := c.GetTile(tileX, tileY, zoom)
 ```
 
-In this case all coordinates are returned in pixels for that tile. If you want to return objects with Lat, Lng,
-use `GetTileWithLatLng` method.
+In this case all coordinates are returned in pixels for that tile. To retrieve objects with Lat, Lng,
+`GetTileWithLatLng` method should be used.
 
 ## Test data
 
 Testdata in `testdata` directory is based on [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) format.
+
+## Benchmarks
+

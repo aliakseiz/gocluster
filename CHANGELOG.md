@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Module name to `github.com/aliakseiz/gocluster`
 - Moved tests to `*_test` packages
 - Synchronized the implementation with parent [mapbox/supercluster](https://github.com/mapbox/supercluster/blob/main/index.js)
+- Points with no coordinates are skipped
 
 ### Fixed
 - Failing tests
