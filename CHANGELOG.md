@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Security
+
+## [1.1.0] - 2022-04-04
+
+### Added
 - CHANGELOG.md file
 - Tests for `Point.Included` field
 
@@ -23,13 +37,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Numerous typos in comments
 - Clustering in some edge cases, i.e. view covers western and eastern hemispheres
 
-### Deprecated
-
 ### Removed
 - `Descendants` field from the `Point`
 - Nested structures in test helpers
-
-### Security
 
 ## [1.0.2] - 2021.09.16
 Fork from [AlekseevAV/cluster](https://github.com/AlekseevAV/cluster)
