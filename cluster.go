@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"context"
+	"errors"
 	"math"
 
 	"github.com/electrious-go/kdbush"
@@ -9,6 +11,10 @@ import (
 const (
 	// InfinityZoomLevel indicate impossible large zoom level (Cluster's max is 21).
 	InfinityZoomLevel = 100
+)
+
+var (
+	ErrInvalidCoordinates = errors.New("invalid NW or SE coordinates")
 )
 
 // Cluster struct get a list or stream of geo objects
@@ -45,9 +51,9 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 		TileSize:  512,
 		NodeSize:  64,
 	}
+
 	for _, opt := range opts {
-		err := opt(cluster)
-		if err != nil {
+		if err := opt(cluster); err != nil {
 			return nil, err
 		}
 	}
@@ -64,6 +70,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	// if we have 986 points, all clusters ids will start from 1000
 	cluster.clusterIdxSeed = int(math.Pow(10, float64(digitsCount(len(points)))))
 	clusters := translateGeoPointsToPoints(points)
+
 	for z := cluster.MaxZoom; z >= cluster.MinZoom; z-- {
 		// create index from clusters from previous iteration
 		cluster.Indexes[z+1-cluster.MinZoom] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
@@ -72,6 +79,7 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 	}
 	// index topmost points
 	cluster.Indexes[0] = kdbush.NewBush(clustersToPoints(clusters), cluster.NodeSize)
+
 	return cluster, nil
 }
 
@@ -80,12 +88,28 @@ func New(points []GeoPoint, opts ...Option) (*Cluster, error) {
 // northWest is left topmost point, southEast is right bottom point.
 // returns the array of clustered points,
 // X coordinate of returned object is Longitude and Y coordinate of returned object is Latitude.
-func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int) []Point {
+func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int) ([]Point, error) {
+	// According to benchmarks, implementation without a context is only 75 ns/op faster,
+	// not worth it to duplicate the functions.
+	return c.GetClustersWithContext(context.TODO(), northWest, southEast, zoom, limit)
+}
+
+// GetClustersWithContext returns the array of clusters for zoom level.
+// The northWest and southEast points are boundary points of square, that should be returned.
+// northWest is left topmost point, southEast is right bottom point.
+// returns the array of clustered points,
+// X coordinate of returned object is Longitude and Y coordinate of returned object is Latitude.
+// Returns error when context is closed or provided NW or SE geo points are invalid.
+func (c *Cluster) GetClustersWithContext(ctx context.Context, northWest, southEast GeoPoint, zoom, limit int) ([]Point, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	nw := northWest.GetCoordinates()
 	se := southEast.GetCoordinates()
 
 	if nw == nil || se == nil {
-		return nil
+		return nil, ErrInvalidCoordinates
 	}
 	// Original mapbox/supercluster library code has the following expression to calculate min and max longitudes:
 	// let minLng = ((bbox[0] + 180) % 360 + 360) % 360 - 180;
@@ -109,10 +133,17 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int
 		minLng = -180
 		maxLng = 180
 	} else if minLng > maxLng {
-		easternHem := c.GetClusters(&Point{X: minLng, Y: maxLat}, &Point{X: 180, Y: minLat}, zoom, limit)
-		westernHem := c.GetClusters(&Point{X: -180, Y: maxLat}, &Point{X: maxLng, Y: minLat}, zoom, limit)
+		easternHem, err := c.GetClusters(&Point{X: minLng, Y: maxLat}, &Point{X: 180, Y: minLat}, zoom, limit)
+		if err != nil {
+			return nil, err
+		}
 
-		return append(easternHem, westernHem...)
+		westernHem, err := c.GetClusters(&Point{X: -180, Y: maxLat}, &Point{X: maxLng, Y: minLat}, zoom, limit)
+		if err != nil {
+			return nil, err
+		}
+
+		return append(easternHem, westernHem...), nil
 	}
 
 	zoom = c.LimitZoom(zoom) - c.MinZoom
@@ -120,20 +151,28 @@ func (c *Cluster) GetClusters(northWest, southEast GeoPoint, zoom int, limit int
 	nwX, nwY := MercatorProjection(GeoCoordinates{Lng: minLng, Lat: maxLat})
 	seX, seY := MercatorProjection(GeoCoordinates{Lng: maxLng, Lat: minLat})
 	ids := index.Range(nwX, nwY, seX, seY)
+
 	if (limit > 0) && (len(ids) > limit) {
 		ids = ids[:limit]
 	}
+
 	result := make([]Point, len(ids))
+
 	for i := range ids {
-		p := index.Points[ids[i]].(*Point)
-		cp := *p
-		coordinates := ReverseMercatorProjection(cp.X, cp.Y)
-		cp.X = coordinates.Lng
-		cp.Y = coordinates.Lat
-		result[i] = cp
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			p := index.Points[ids[i]].(*Point)
+			cp := *p
+			coordinates := ReverseMercatorProjection(cp.X, cp.Y)
+			cp.X = coordinates.Lng
+			cp.Y = coordinates.Lat
+			result[i] = cp
+		}
 	}
 
-	return result
+	return result, nil
 }
 
 // GetClustersPointsInRadius will return child points for specific cluster
@@ -145,6 +184,7 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 	if clusterID < c.clusterIdxSeed {
 		return nil
 	}
+
 	originIndex := (clusterID >> 5) - c.clusterIdxSeed
 	originZoom := (clusterID % 32) - 1
 	originTree := c.Indexes[originZoom]
@@ -158,6 +198,7 @@ func (c *Cluster) GetClustersPointsInRadius(clusterID int) []*Point {
 	for _, i := range ids {
 		children = append(children, treeBelow.Points[i].(*Point))
 	}
+
 	return children
 }
 
@@ -166,15 +207,19 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 	if clusterID < c.clusterIdxSeed {
 		return c.MaxZoom
 	}
+
 	clusterZoom := (clusterID % 32) - 1
 	id := clusterID
+
 	for clusterZoom < c.MaxZoom {
 		children := c.GetClustersPointsInRadius(id)
 		// nil means it is point not cluster
 		if children == nil {
 			return c.MaxZoom
 		}
+
 		clusterZoom++
+
 		if clusterZoom >= c.MaxZoom+1 {
 			return c.MaxZoom
 		}
@@ -182,8 +227,10 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 		if len(children) != 1 {
 			break
 		}
+
 		id = children[0].ID
 	}
+
 	return clusterZoom
 }
 
@@ -192,10 +239,13 @@ func (c *Cluster) GetClusterExpansionZoom(clusterID int) int {
 func (c *Cluster) AllClusters(zoom int, limit int) []Point {
 	index := c.Indexes[c.LimitZoom(zoom)-c.MinZoom]
 	points := index.Points
+
 	if (limit > 0) && (len(points) > limit) {
 		points = points[:limit]
 	}
+
 	result := make([]Point, len(points))
+
 	for i := range points {
 		p := index.Points[i].(*Point)
 		cp := *p
@@ -204,12 +254,14 @@ func (c *Cluster) AllClusters(zoom int, limit int) []Point {
 		cp.Y = coordinates.Lat
 		result[i] = cp
 	}
+
 	return result
 }
 
 // clusterize points for zoom level.
 func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 	var result []*Point
+
 	r := float64(c.PointSize) / float64(c.TileSize*(1<<uint(zoom)))
 	index := 0
 	// iterate all clusters
@@ -227,7 +279,9 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 		nPoints := p.NumPoints
 		wx := p.X * float64(nPoints)
 		wy := p.Y * float64(nPoints)
+
 		var foundNeighbours []*Point
+
 		for j := range neighbourIds {
 			b := points[neighbourIds[j]]
 			// filter out neighbours, that are processed already (and processed point "p" as well)
@@ -236,9 +290,11 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 				wy += b.Y * float64(b.NumPoints)
 				nPoints += b.NumPoints
 				b.zoom = zoom // set the zoom to skip in other iterations
+
 				foundNeighbours = append(foundNeighbours, b)
 			}
 		}
+
 		newCluster := p
 		// create new cluster
 		if len(foundNeighbours) > 0 {
@@ -257,9 +313,11 @@ func (c *Cluster) clusterize(points []*Point, zoom int) []*Point {
 				newCluster.Included = append(newCluster.Included, neighbour.Included...)
 			}
 		}
+
 		result = append(result, newCluster)
 		index++
 	}
+
 	return result
 }
 
@@ -267,8 +325,10 @@ func (c *Cluster) LimitZoom(zoom int) int {
 	if zoom > c.MaxZoom {
 		zoom = c.MaxZoom
 	}
+
 	if zoom < c.MinZoom {
 		zoom = c.MinZoom
 	}
+
 	return zoom
 }

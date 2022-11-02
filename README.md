@@ -26,32 +26,31 @@ Usage example:
 package main
 
 import (
-	"fmt"
-	"github.com/aliakseiz/gocluster"
+  "github.com/aliakseiz/gocluster"
+  "log"
 )
 
 func main() {
-	var points []*cluster.Point
-	// Convert slice of your objects to slice of GeoPoint (interface) objects
-	geoPoints := make([]cluster.GeoPoint, len(points))
-	for i := range points {
-		geoPoints[i] = points[i]
-	}
-	// Create new cluster (this will build index)
-	c, err := cluster.New(geoPoints, cluster.WithinZoom(0, 21))
-	if err != nil {
-		fmt.Println(err)
+  var points []*cluster.Point
+  // Convert slice of your objects to slice of GeoPoint (interface) objects
+  geoPoints := make([]cluster.GeoPoint, len(points))
+  
+  for i := range points {
+    geoPoints[i] = points[i]
+  }
+  // Create new cluster (this will build index)
+  c, err := cluster.New(geoPoints, cluster.WithinZoom(0, 21))
+  if err != nil {
+    log.Fatal(err)
+  }
 
-		return
-	}
+  // Get tour tile with mercator coordinate projections to display directly on the map
+  result := c.GetTile(0, 0, 0)
+  // or get all clusters for zoom 10 without points count limit
+  results := c.AllClusters(10, -1)
 
-	// Get tour tile with mercator coordinate projections to display directly on the map
-	result := c.GetTile(0, 0, 0)
-	// or get all clusters for zoom 10 without points count limit
-	results := c.AllClusters(10, -1)
-
-	fmt.Printf("%v\n", result)
-	fmt.Printf("%v\n", results)
+  log.Printf("%v\n", result)
+  log.Printf("%v\n", results)
 }
 ```
 

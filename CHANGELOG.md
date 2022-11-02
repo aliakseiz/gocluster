@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Context support for `GetClusters` method
 
 ### Changed
+- Updated examples to use `log` instead of `fmt`
+- Replaced deprecated `ioutil` methods with `os` package
 
 ### Fixed
 
