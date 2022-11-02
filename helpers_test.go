@@ -3,7 +3,7 @@ package cluster_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	cluster "github.com/aliakseiz/gocluster"
 )
@@ -65,7 +65,7 @@ func importData(filename string) []*TestPoint {
 		Type     string
 		Features []*TestPoint
 	}{}
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
 
@@ -84,7 +84,7 @@ func importData(filename string) []*TestPoint {
 func importPoints(filename string) []cluster.Point {
 	var result []cluster.Point
 
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
 
@@ -106,7 +106,7 @@ func importGeoJSONResultFeature(filename string) []GeoJSONResultFeature {
 		Features []GeoJSONResultFeature
 	}{}
 
-	raw, err := ioutil.ReadFile(filename)
+	raw, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err.Error())
 

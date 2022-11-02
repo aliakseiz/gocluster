@@ -2,17 +2,19 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/aliakseiz/gocluster"
 )
 
 type testPoint struct {
-	Type       string
+	Type string
+
 	Properties struct {
 		Name string
 	}
+
 	Geometry struct {
 		Coordinates []float64
 	}
@@ -38,12 +40,16 @@ func importData(filename string) []*testPoint {
 		Type     string
 		Features []*testPoint
 	}{}
-	raw, err := ioutil.ReadFile(filename)
+
+	raw, err := os.ReadFile(filename)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err)
+
 		return nil
 	}
+
 	json.Unmarshal(raw, &points)
+
 	return points.Features
 }
 
@@ -62,17 +68,26 @@ func (sp simplePoint) GetID() int64 {
 func main() {
 	points := importData("../../testdata/places.json")
 	geoPoints := make([]cluster.GeoPoint, len(points))
+
 	for i := range points {
 		geoPoints[i] = points[i]
 	}
+
 	c, _ := cluster.New(geoPoints,
 		cluster.WithinZoom(0, 3),
 		cluster.WithPointSize(60),
 		cluster.WithTileSize(256))
 	southEast := simplePoint{71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-71.01562500000001, 83.7539108491127}
-	result := c.GetClusters(northWest, southEast, 0, -1)
-	fmt.Printf("Getting points: %+v\n length %v \n", result, len(result))
+
+	result, err := c.GetClusters(northWest, southEast, 0, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Getting points: %+v\n length %v \n", result, len(result))
+
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Println(string(resultJSON))
+
+	log.Println(string(resultJSON))
 }

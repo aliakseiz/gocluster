@@ -43,45 +43,60 @@ var c *cluster.Cluster
 
 func main() {
 	log.Printf("creating random samples\n")
+
 	c = createCluster(1000000)
+
 	log.Printf("samples created\n")
-	statikFS, err := fs.New()
+
+	staticFS, err := fs.New()
 	if err != nil {
 		log.Fatal(err)
 	}
-	http.Handle("/", http.FileServer(statikFS))
+
+	http.Handle("/", http.FileServer(staticFS))
 	http.HandleFunc("/clusters", clustersEndpoint)
 	http.HandleFunc("/zoom", zoomEndpoint)
+
 	log.Printf("listening to 8080\n")
+
 	http.ListenAndServe(":8080", nil)
 }
 
 func clustersEndpoint(rw http.ResponseWriter, request *http.Request) {
+	var t payload
+
 	log.Println("received request")
 	log.Println(request.URL.String())
+
 	decoder := json.NewDecoder(request.Body)
-	var t payload
-	err := decoder.Decode(&t)
-	if err != nil {
-		panic(err)
+	if err := decoder.Decode(&t); err != nil {
+		log.Fatal(err)
 	}
-	points := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom, -1)
+
+	points, err := c.GetClusters(t.BoundingBox.NW, t.BoundingBox.SE, t.Zoom, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	data, err := json.Marshal(points)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
 	rw.Write(data)
 }
 
 func zoomEndpoint(rw http.ResponseWriter, request *http.Request) {
+	var t payload2
+
 	log.Println("received request")
 	log.Println(request.URL.String())
+
 	decoder := json.NewDecoder(request.Body)
-	var t payload2
-	err := decoder.Decode(&t)
-	if err != nil {
-		panic(err)
+	if err := decoder.Decode(&t); err != nil {
+		log.Fatal(err)
 	}
+
 	zoom := c.GetClusterExpansionZoom(t.ClusterID)
 	l := []byte(fmt.Sprintf(`{"zoom": %d}`, zoom))
 	rw.Write(l)
@@ -89,22 +104,31 @@ func zoomEndpoint(rw http.ResponseWriter, request *http.Request) {
 
 func createCluster(num int) *cluster.Cluster {
 	log.Printf("generating random lat/lng")
+
 	coords := make([]cluster.GeoPoint, num)
+
 	for i := range coords {
 		lat, lng := spherand.Geographical()
 		coords[i] = latlng{lat, lng}
 	}
+
 	geoPoints := make([]cluster.GeoPoint, len(coords))
+
 	for i := range coords {
 		geoPoints[i] = coords[i]
 	}
+
 	log.Printf("starting clustering")
+
 	c, err := cluster.New(coords,
 		cluster.WithNodeSize(64),
 		cluster.WithPointSize(120))
+
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
 	log.Printf("clustering done")
+
 	return c
 }

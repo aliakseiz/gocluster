@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Security
 
+## [1.2.0] - 2022-11-02
+
+### Added
+- Context support for `GetClusters` method
+
+### Changed
+- Updated examples to use `log` instead of `fmt`
+- Replaced deprecated `ioutil` methods with `os` package
+
 ## [1.1.0] - 2022-04-04
 
 ### Added

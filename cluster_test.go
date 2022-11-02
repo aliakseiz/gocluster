@@ -1,8 +1,10 @@
 package cluster_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	cluster "github.com/aliakseiz/gocluster"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +33,35 @@ func TestAllClusters(t *testing.T) {
 	assert.InDelta(t, p.Y, -83.79204408779539, 0.000001)
 }
 
+// cpu: Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz
+// Benchmark_GetClustersWithContext-8   	  322494	      3426 ns/op
+// Benchmark_GetClustersWithContext-8   	  321132	      3521 ns/op
+// Benchmark_GetClustersWithContext-8   	  321542	      3719 ns/op
+// average 3555 ns/op
+func Benchmark_GetClustersWithContext(b *testing.B) {
+	points := importData("./testdata/places.json")
+
+	geoPoints := make([]cluster.GeoPoint, len(points))
+
+	for i := range points {
+		geoPoints[i] = points[i]
+	}
+
+	c, _ := cluster.New(geoPoints,
+		cluster.WithinZoom(0, 17),
+		cluster.WithPointSize(40),
+		cluster.WithTileSize(512),
+		cluster.WithNodeSize(64))
+	southEast := simplePoint{-1, 71.36718750000001, -83.79204408779539}
+	northWest := simplePoint{-1, -71.01562500000001, 83.7539108491127}
+
+	ctx := context.Background()
+
+	for i := 0; i < b.N; i++ {
+		c.GetClustersWithContext(ctx, northWest, southEast, 2, -1)
+	}
+}
+
 func TestCluster_GetClusters(t *testing.T) {
 	points := importData("./testdata/places.json")
 	assert.NotEmptyf(t, points, "no points for clustering")
@@ -49,7 +80,8 @@ func TestCluster_GetClusters(t *testing.T) {
 	southEast := simplePoint{-1, 71.36718750000001, -83.79204408779539}
 	northWest := simplePoint{-1, -71.01562500000001, 83.7539108491127}
 
-	result := c.GetClusters(northWest, southEast, 2, -1)
+	result, err := c.GetClusters(northWest, southEast, 2, -1)
+	require.NoError(t, err)
 	assert.NotEmpty(t, result)
 
 	expectedPoints := importData("./testdata/cluster.json")
@@ -66,6 +98,34 @@ func TestCluster_GetClusters(t *testing.T) {
 		}
 		// Included field is tested separately
 	}
+}
+
+// TestCluster_GetClustersWithContext doesn't verify the clustering result,
+// because the only difference from TestCluster_GetClusters is the context checking.
+func TestCluster_GetClustersWithContext(t *testing.T) {
+	points := importData("./testdata/places.json")
+	assert.NotEmptyf(t, points, "no points for clustering")
+
+	geoPoints := make([]cluster.GeoPoint, len(points))
+
+	for i := range points {
+		geoPoints[i] = points[i]
+	}
+
+	c, _ := cluster.New(geoPoints,
+		cluster.WithinZoom(0, 17),
+		cluster.WithPointSize(40),
+		cluster.WithTileSize(512),
+		cluster.WithNodeSize(64))
+	southEast := simplePoint{-1, 71.36718750000001, -83.79204408779539}
+	northWest := simplePoint{-1, -71.01562500000001, 83.7539108491127}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	result, err := c.GetClustersWithContext(ctx, northWest, southEast, 2, -1)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
 }
 
 func TestCluster_CrossingNotCrossing(t *testing.T) {
@@ -90,13 +150,15 @@ func TestCluster_CrossingNotCrossing(t *testing.T) {
 	southEast := simplePoint{-1, -177, -10}
 	northWest := simplePoint{-1, -179, 10}
 
-	nonCrossing := c.GetClusters(northWest, southEast, 1, -1)
+	nonCrossing, err := c.GetClusters(northWest, southEast, 1, -1)
+	require.NoError(t, err)
 	assert.NotEmpty(t, nonCrossing)
 
 	southEast = simplePoint{-1, -177, -10}
 	northWest = simplePoint{-1, 179, 10}
 
-	crossing := c.GetClusters(northWest, southEast, 1, -1)
+	crossing, err := c.GetClusters(northWest, southEast, 1, -1)
+	require.NoError(t, err)
 	assert.NotEmpty(t, crossing)
 
 	assert.EqualValues(t, nonCrossing, crossing)
@@ -170,7 +232,8 @@ func TestCluster_GetClusters_Included(t *testing.T) {
 				cluster.WithPointSize(60),
 				cluster.WithTileSize(512),
 				cluster.WithNodeSize(64))
-			got := c.GetClusters(northWest, southEast, zoom, limit)
+			got, err := c.GetClusters(northWest, southEast, zoom, limit)
+			require.NoError(t, err)
 
 			assert.NotEmptyf(t, got, "no clusters created")
 			require.Equalf(t, len(tt.expected), len(got), "expected and result arrays length must be equal")
@@ -210,7 +273,6 @@ func TestCluster_AllClusters(t *testing.T) {
 
 func ExampleCluster_GetClusters() {
 	points := importData("./testdata/places.json")
-	// var points []*TestPoint
 
 	geoPoints := make([]cluster.GeoPoint, len(points))
 
@@ -221,7 +283,10 @@ func ExampleCluster_GetClusters() {
 	c, _ := cluster.New(geoPoints)
 	northWest := simplePoint{-1, -71.01562500000001, 83.7539108491127}
 	southEast := simplePoint{-1, 71.36718750000001, -83.79204408779539}
-	result := c.GetClusters(northWest, southEast, 2, -1)
+	result, err := c.GetClusters(northWest, southEast, 2, -1)
+	if err != nil {
+		fmt.Errorf("unable to get clusters: %v", err)
+	}
 
 	fmt.Printf("%+v", result[:3])
 	// Output: [{X:-14.473194953510028 Y:26.157965399212813 zoom:1 ID:107 NumPoints:1 Included:[0]} {X:-12.408741828510014 Y:58.16339752811905 zoom:1 ID:159 NumPoints:1 Included:[0]} {X:-9.269962828651519 Y:42.928736057812586 zoom:1 ID:127 NumPoints:1 Included:[0]}]
